@@ -110,6 +110,11 @@ interface QuestionResponseData {
   chart_data: ChartData
 }
 
+interface MediaData {
+  photos: ChartData
+  videos: ChartData
+}
+
 interface ReportingData {
   total_submissions: number
   completed_approved_submissions: number
@@ -118,6 +123,7 @@ interface ReportingData {
   generated_at: string
   demographics: DemographicData
   question_responses: QuestionResponseData[]
+  media_analysis: MediaData
 }
 
 type TabType = 'submissions' | 'reporting' | 'settings'
@@ -402,13 +408,21 @@ export default function ReportPage() {
     const maxValue = Math.max(...chartData.data, 1) // Ensure at least 1 to avoid division by 0
     const hasLongLabels = chartData.labels.some(label => label.length > 20)
 
+    // Direct pixel-based scaling for 500px container with better proportions
+    const getScaledHeight = (value: number) => {
+      if (value === 0) return '0px'
+      if (value === maxValue) return '450px' // Tallest bar uses most of 500px container
+      const calculatedHeight = Math.max((value / maxValue) * 450, 200) // Min 200px for visibility while maintaining proportions
+      return `${calculatedHeight}px`
+    }
+
     return (
       <div className="w-full">
         <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{title}</h3>
-        <div className={`bg-white p-4 rounded-lg border ${hasLongLabels ? 'space-y-3' : 'flex items-end justify-center space-x-2 h-64'}`}>
+        <div className={`bg-white p-2 rounded-lg border ${hasLongLabels ? 'space-y-4' : 'flex items-end justify-center space-x-1'}`} style={{ height: '500px' }}>
           {chartData.labels.map((label, index) => {
             const value = chartData.data[index]
-            const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0
+            const scaledHeight = getScaledHeight(value)
             const color = chartData.backgroundColor?.[index] || colors?.[index] || defaultColors[index % defaultColors.length]
 
             if (hasLongLabels) {
@@ -418,12 +432,12 @@ export default function ReportPage() {
                   <div className="w-32 text-sm text-gray-700 text-right truncate" title={label}>
                     {label}
                   </div>
-                  <div className="flex-1 bg-gray-200 rounded-full h-6 relative max-w-xs">
+                  <div className="flex-1 bg-gray-200 rounded-lg h-12 relative">
                     <div
-                      className="h-6 rounded-full flex items-center justify-end pr-2 text-white text-xs font-semibold transition-all duration-500"
+                      className="h-12 rounded-lg flex items-center justify-end pr-4 text-white text-sm font-semibold transition-all duration-500"
                       style={{
                         backgroundColor: color,
-                        width: `${Math.max(percentage, 8)}%`
+                        width: `${(value / maxValue) * 100}%`
                       }}
                     >
                       {value > 0 && (
@@ -441,8 +455,8 @@ export default function ReportPage() {
                     className="w-full rounded-t-lg transition-all duration-500 flex items-end justify-center text-white text-xs font-semibold pb-1"
                     style={{
                       backgroundColor: color,
-                      height: `${Math.max(percentage, 10)}%`,
-                      minHeight: value > 0 ? '24px' : '4px'
+                      height: scaledHeight,
+                      minHeight: value > 0 ? '200px' : '20px'
                     }}
                   >
                     {value > 0 && <span className="drop-shadow">{value}</span>}
@@ -954,6 +968,56 @@ export default function ReportPage() {
                     <div className="text-center text-gray-500">
                       <p>No single-choice or multi-choice questions found in this survey.</p>
                       <p className="text-sm mt-2">Charts are only shown for single and multi-choice questions.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Media Analysis Charts */}
+                {(reportingData.media_analysis.photos.labels.length > 0 || reportingData.media_analysis.videos.labels.length > 0) && (
+                  <div className="bg-white rounded-lg shadow">
+                    <div className="p-6 border-b">
+                      <h2 className="text-xl font-semibold">Media Analysis</h2>
+                      <p className="text-gray-500 text-sm mt-1">
+                        AI-generated reporting labels for photos and videos (distinct submission count)
+                      </p>
+                    </div>
+
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Photo Analysis Chart */}
+                        {reportingData.media_analysis.photos.labels.length > 0 && (
+                          <div>
+                            <CustomBarChart
+                              chartData={reportingData.media_analysis.photos}
+                              title="Photo Analysis - Reporting Labels"
+                            />
+                            <div className="mt-2 text-xs text-gray-500 text-center">
+                              Shows distinct submissions with photos containing each reporting label
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Video Analysis Chart */}
+                        {reportingData.media_analysis.videos.labels.length > 0 && (
+                          <div>
+                            <CustomBarChart
+                              chartData={reportingData.media_analysis.videos}
+                              title="Video Analysis - Reporting Labels"
+                            />
+                            <div className="mt-2 text-xs text-gray-500 text-center">
+                              Shows distinct submissions with videos containing each reporting label
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* No Media Message */}
+                      {reportingData.media_analysis.photos.labels.length === 0 && reportingData.media_analysis.videos.labels.length === 0 && (
+                        <div className="text-center text-gray-500 py-8">
+                          <p>No photo or video analysis data available.</p>
+                          <p className="text-sm mt-2">Media analysis appears when photos/videos have been processed with AI reporting labels.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

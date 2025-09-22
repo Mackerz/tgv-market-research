@@ -19,6 +19,10 @@ class QuestionResponseData(BaseModel):
     question_type: str
     chart_data: ChartData
 
+class MediaData(BaseModel):
+    photos: ChartData
+    videos: ChartData
+
 class ReportingData(BaseModel):
     total_submissions: int
     completed_approved_submissions: int
@@ -28,3 +32,4 @@ class ReportingData(BaseModel):
 
     demographics: DemographicData
     question_responses: List[QuestionResponseData]
+    media_analysis: MediaData

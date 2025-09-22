@@ -3,8 +3,10 @@ from sqlalchemy import and_, func
 from typing import Dict, List, Optional, Tuple
 from collections import Counter, defaultdict
 from datetime import datetime
+import json
 
 import survey_models
+import media_models
 import settings_crud
 import reporting_schemas
 
@@ -176,6 +178,86 @@ def get_question_response_data(
     return response_data
 
 
+def get_media_analysis_data(db: Session, survey_id: int) -> reporting_schemas.MediaData:
+    """Get media analysis data for photos and videos"""
+
+    # Get all completed and approved submission IDs
+    approved_submission_ids = db.query(survey_models.Submission.id).filter(
+        and_(
+            survey_models.Submission.survey_id == survey_id,
+            survey_models.Submission.is_completed == True,
+            survey_models.Submission.is_approved == True
+        )
+    ).subquery()
+
+    # Get photo responses with media analysis
+    photo_responses = db.query(survey_models.Response, media_models.Media).join(
+        media_models.Media, survey_models.Response.id == media_models.Media.response_id
+    ).filter(
+        and_(
+            survey_models.Response.submission_id.in_(approved_submission_ids),
+            survey_models.Response.question_type == 'photo',
+            survey_models.Response.photo_url.isnot(None),
+            media_models.Media.reporting_labels.isnot(None)
+        )
+    ).all()
+
+    # Get video responses with media analysis
+    video_responses = db.query(survey_models.Response, media_models.Media).join(
+        media_models.Media, survey_models.Response.id == media_models.Media.response_id
+    ).filter(
+        and_(
+            survey_models.Response.submission_id.in_(approved_submission_ids),
+            survey_models.Response.question_type == 'video',
+            survey_models.Response.video_url.isnot(None),
+            media_models.Media.reporting_labels.isnot(None)
+        )
+    ).all()
+
+    # Process photo reporting labels
+    photo_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
+    for response, media in photo_responses:
+        try:
+            labels = json.loads(media.reporting_labels) if media.reporting_labels else []
+            for label in labels:
+                photo_label_counts[label].add(response.submission_id)
+        except json.JSONDecodeError:
+            continue
+
+    # Process video reporting labels
+    video_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
+    for response, media in video_responses:
+        try:
+            labels = json.loads(media.reporting_labels) if media.reporting_labels else []
+            for label in labels:
+                video_label_counts[label].add(response.submission_id)
+        except json.JSONDecodeError:
+            continue
+
+    # Convert sets to counts
+    photo_final_counts = {label: len(submission_ids) for label, submission_ids in photo_label_counts.items()}
+    video_final_counts = {label: len(submission_ids) for label, submission_ids in video_label_counts.items()}
+
+    # Define colors for media charts
+    colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+    ]
+
+    return reporting_schemas.MediaData(
+        photos=reporting_schemas.ChartData(
+            labels=list(photo_final_counts.keys()),
+            data=list(photo_final_counts.values()),
+            backgroundColor=colors[:len(photo_final_counts)]
+        ),
+        videos=reporting_schemas.ChartData(
+            labels=list(video_final_counts.keys()),
+            data=list(video_final_counts.values()),
+            backgroundColor=colors[:len(video_final_counts)]
+        )
+    )
+
+
 def get_reporting_data(db: Session, survey_slug: str) -> Optional[reporting_schemas.ReportingData]:
     """Get comprehensive reporting data for a survey"""
 
@@ -221,6 +303,9 @@ def get_reporting_data(db: Session, survey_slug: str) -> Optional[reporting_sche
         question_display_names
     )
 
+    # Get media analysis data
+    media_analysis = get_media_analysis_data(db, survey.id)
+
     return reporting_schemas.ReportingData(
         total_submissions=total_submissions,
         completed_approved_submissions=completed_approved_count,
@@ -228,5 +313,6 @@ def get_reporting_data(db: Session, survey_slug: str) -> Optional[reporting_sche
         survey_slug=survey.survey_slug,
         generated_at=datetime.now(),
         demographics=demographics,
-        question_responses=question_responses
+        question_responses=question_responses,
+        media_analysis=media_analysis
     )
