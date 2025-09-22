@@ -23,10 +23,16 @@ from gcp_ai_analysis import analyze_photo_response, analyze_video_response
 from gemini_labeling import generate_labels_for_media, get_survey_label_summary
 from fastapi import BackgroundTasks
 
+# Import settings modules
+import settings_models
+import settings_schemas
+import settings_crud
+
 # Import models to ensure they're registered
 from models import User, Post
 from survey_models import Survey, Submission, Response
 from media_models import Media
+from settings_models import ReportSettings, QuestionDisplayName
 
 # Configure logging
 logging.basicConfig(
@@ -650,6 +656,113 @@ def reject_submission(
         raise HTTPException(status_code=404, detail="Submission not found")
 
     return {"message": "Submission rejected", "submission": submission}
+
+# =============================================================================
+# SETTINGS ENDPOINTS
+# =============================================================================
+
+@app.get("/api/reports/{survey_slug}/settings")
+def get_report_settings(survey_slug: str, db: Session = Depends(get_db)):
+    """Get report settings for a survey"""
+    # Get survey
+    survey = survey_crud.get_survey_by_slug(db, survey_slug)
+    if not survey:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    # Get settings with questions
+    settings = settings_crud.get_report_settings_with_questions(db, survey.id)
+    if not settings:
+        raise HTTPException(status_code=404, detail="Settings not found")
+
+    return settings
+
+@app.put("/api/reports/{survey_slug}/settings/age-ranges")
+def update_age_ranges(
+    survey_slug: str,
+    age_ranges_update: List[settings_schemas.AgeRange],
+    db: Session = Depends(get_db)
+):
+    """Update age ranges for a survey"""
+    # Get survey
+    survey = survey_crud.get_survey_by_slug(db, survey_slug)
+    if not survey:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    # Update age ranges
+    settings_update = settings_schemas.ReportSettingsUpdate(age_ranges=age_ranges_update)
+    updated_settings = settings_crud.update_report_settings(db, survey.id, settings_update)
+
+    if not updated_settings:
+        # Create settings if they don't exist
+        updated_settings = settings_crud.create_or_get_report_settings(db, survey.id)
+        updated_settings = settings_crud.update_report_settings(db, survey.id, settings_update)
+
+    return {"message": "Age ranges updated successfully", "age_ranges": updated_settings.age_ranges}
+
+@app.put("/api/reports/{survey_slug}/settings/question-display-names")
+def update_question_display_names(
+    survey_slug: str,
+    updates: settings_schemas.BulkQuestionDisplayNameUpdate,
+    db: Session = Depends(get_db)
+):
+    """Bulk update question display names for a survey"""
+    # Get survey
+    survey = survey_crud.get_survey_by_slug(db, survey_slug)
+    if not survey:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    # Get or create settings
+    settings = settings_crud.create_or_get_report_settings(db, survey.id)
+
+    # Update question display names
+    success = settings_crud.bulk_update_question_display_names(
+        db,
+        settings.id,
+        updates.question_updates
+    )
+
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to update question display names")
+
+    return {"message": "Question display names updated successfully"}
+
+@app.put("/api/reports/{survey_slug}/settings/question-display-names/{question_id}")
+def update_single_question_display_name(
+    survey_slug: str,
+    question_id: str,
+    display_name_update: settings_schemas.QuestionDisplayNameUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update display name for a single question"""
+    # Get survey
+    survey = survey_crud.get_survey_by_slug(db, survey_slug)
+    if not survey:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    # Get or create settings
+    settings = settings_crud.create_or_get_report_settings(db, survey.id)
+
+    # Update question display name
+    updated_question = settings_crud.update_question_display_name(
+        db,
+        settings.id,
+        question_id,
+        display_name_update.display_name
+    )
+
+    if not updated_question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    return {
+        "message": "Question display name updated successfully",
+        "question": {
+            "id": updated_question.id,
+            "question_id": updated_question.question_id,
+            "question_text": updated_question.question_text,
+            "display_name": updated_question.display_name,
+            "effective_display_name": settings_crud.get_effective_display_name(updated_question)
+        }
+    }
 
 # =============================================================================
 # MEDIA PROXY ENDPOINTS
