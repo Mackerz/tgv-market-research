@@ -28,6 +28,10 @@ import settings_models
 import settings_schemas
 import settings_crud
 
+# Import reporting modules
+import reporting_schemas
+import reporting_crud
+
 # Import models to ensure they're registered
 from models import User, Post
 from survey_models import Survey, Submission, Response
@@ -656,6 +660,16 @@ def reject_submission(
         raise HTTPException(status_code=404, detail="Submission not found")
 
     return {"message": "Submission rejected", "submission": submission}
+
+@app.get("/api/reports/{survey_slug}/data", response_model=reporting_schemas.ReportingData)
+def get_reporting_data(survey_slug: str, db: Session = Depends(get_db)):
+    """Get comprehensive reporting data including demographics and question responses"""
+    reporting_data = reporting_crud.get_reporting_data(db, survey_slug)
+
+    if not reporting_data:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    return reporting_data
 
 # =============================================================================
 # SETTINGS ENDPOINTS

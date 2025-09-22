@@ -90,6 +90,36 @@ interface ReportSettings {
   available_questions: AvailableQuestion[]
 }
 
+interface ChartData {
+  labels: string[]
+  data: number[]
+  backgroundColor?: string[]
+}
+
+interface DemographicData {
+  age_ranges: ChartData
+  regions: ChartData
+  genders: ChartData
+}
+
+interface QuestionResponseData {
+  question_id: string
+  question_text: string
+  display_name: string | null
+  question_type: string
+  chart_data: ChartData
+}
+
+interface ReportingData {
+  total_submissions: number
+  completed_approved_submissions: number
+  survey_name: string
+  survey_slug: string
+  generated_at: string
+  demographics: DemographicData
+  question_responses: QuestionResponseData[]
+}
+
 type TabType = 'submissions' | 'reporting' | 'settings'
 type ApprovalFilter = 'all' | 'approved' | 'rejected'
 type SortBy = 'submitted_at' | 'email' | 'age' | 'region'
@@ -116,6 +146,10 @@ export default function ReportPage() {
   const [tempAgeRanges, setTempAgeRanges] = useState<AgeRange[]>([])
   const [tempQuestionDisplayNames, setTempQuestionDisplayNames] = useState<{[key: string]: string}>({})
   const [settingsSuccess, setSettingsSuccess] = useState<string | null>(null)
+
+  // Reporting state
+  const [reportingData, setReportingData] = useState<ReportingData | null>(null)
+  const [reportingLoading, setReportingLoading] = useState(false)
 
   const fetchSubmissions = async () => {
     try {
@@ -302,6 +336,42 @@ export default function ReportPage() {
     })
   }
 
+  // Reporting functions
+  const fetchReportingData = async () => {
+    try {
+      setReportingLoading(true)
+      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/data`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch reporting data')
+      }
+
+      const data: ReportingData = await response.json()
+      setReportingData(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setReportingLoading(false)
+    }
+  }
+
+  const createChartOptions = (title: string) => ({
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: title,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  })
+
   useEffect(() => {
     fetchSubmissions()
   }, [reportSlug, approvalFilter, sortBy, sortOrder])
@@ -309,8 +379,88 @@ export default function ReportPage() {
   useEffect(() => {
     if (activeTab === 'settings') {
       fetchSettings()
+    } else if (activeTab === 'reporting') {
+      fetchReportingData()
     }
   }, [activeTab, reportSlug])
+
+  // Custom Bar Chart Component
+  const CustomBarChart = ({
+    chartData,
+    title,
+    colors
+  }: {
+    chartData: ChartData,
+    title: string,
+    colors?: string[]
+  }) => {
+    const defaultColors = [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+    ]
+
+    const maxValue = Math.max(...chartData.data, 1) // Ensure at least 1 to avoid division by 0
+    const hasLongLabels = chartData.labels.some(label => label.length > 20)
+
+    return (
+      <div className="w-full">
+        <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{title}</h3>
+        <div className={`bg-white p-4 rounded-lg border ${hasLongLabels ? 'space-y-3' : 'flex items-end justify-center space-x-2 h-64'}`}>
+          {chartData.labels.map((label, index) => {
+            const value = chartData.data[index]
+            const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0
+            const color = chartData.backgroundColor?.[index] || colors?.[index] || defaultColors[index % defaultColors.length]
+
+            if (hasLongLabels) {
+              // Horizontal bar layout for long labels
+              return (
+                <div key={index} className="flex items-center space-x-3">
+                  <div className="w-32 text-sm text-gray-700 text-right truncate" title={label}>
+                    {label}
+                  </div>
+                  <div className="flex-1 bg-gray-200 rounded-full h-6 relative max-w-xs">
+                    <div
+                      className="h-6 rounded-full flex items-center justify-end pr-2 text-white text-xs font-semibold transition-all duration-500"
+                      style={{
+                        backgroundColor: color,
+                        width: `${Math.max(percentage, 8)}%`
+                      }}
+                    >
+                      {value > 0 && (
+                        <span className="text-white drop-shadow">{value}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            } else {
+              // Vertical bar layout for short labels
+              return (
+                <div key={index} className="flex flex-col items-center space-y-2 flex-1 min-w-0">
+                  <div
+                    className="w-full rounded-t-lg transition-all duration-500 flex items-end justify-center text-white text-xs font-semibold pb-1"
+                    style={{
+                      backgroundColor: color,
+                      height: `${Math.max(percentage, 10)}%`,
+                      minHeight: value > 0 ? '24px' : '4px'
+                    }}
+                  >
+                    {value > 0 && <span className="drop-shadow">{value}</span>}
+                  </div>
+                  <div className="text-xs text-gray-700 text-center truncate w-full" title={label}>
+                    {label}
+                  </div>
+                </div>
+              )
+            }
+          })}
+        </div>
+        <div className="mt-2 text-xs text-gray-500 text-center">
+          Total responses: {chartData.data.reduce((a, b) => a + b, 0)}
+        </div>
+      </div>
+    )
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString()
@@ -690,9 +840,131 @@ export default function ReportPage() {
         )}
 
         {activeTab === 'reporting' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Reporting</h2>
-            <p className="text-gray-500">Coming soon...</p>
+          <div className="space-y-8">
+            {reportingLoading ? (
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-center">Loading report data...</div>
+              </div>
+            ) : reportingData ? (
+              <>
+                {/* Summary Header */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="text-center">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                      {reportingData.completed_approved_submissions} Approved Submissions
+                    </h2>
+                    <p className="text-gray-600">
+                      Out of {reportingData.total_submissions} total completed submissions for "{reportingData.survey_name}"
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Generated at {new Date(reportingData.generated_at).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Demographics Charts */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="p-6 border-b">
+                    <h2 className="text-xl font-semibold">Demographics</h2>
+                    <p className="text-gray-500 text-sm mt-1">
+                      Breakdown of approved submissions by demographic categories
+                    </p>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      {/* Age Ranges Chart */}
+                      <CustomBarChart
+                        chartData={reportingData.demographics.age_ranges}
+                        title="Age Ranges"
+                      />
+
+                      {/* Regions Chart */}
+                      <CustomBarChart
+                        chartData={reportingData.demographics.regions}
+                        title="Regions"
+                      />
+
+                      {/* Genders Chart */}
+                      <CustomBarChart
+                        chartData={reportingData.demographics.genders}
+                        title="Genders"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Question Response Charts */}
+                {reportingData.question_responses.length > 0 && (
+                  <div className="bg-white rounded-lg shadow">
+                    <div className="p-6 border-b">
+                      <h2 className="text-xl font-semibold">Survey Response Analysis</h2>
+                      <p className="text-gray-500 text-sm mt-1">
+                        Response distribution for single-choice and multi-choice questions
+                      </p>
+                    </div>
+
+                    <div className="p-6">
+                      <div className="space-y-12">
+                        {reportingData.question_responses.map((question) => (
+                          <div key={question.question_id} className="border rounded-lg p-6">
+                            <div className="mb-6">
+                              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                {question.display_name || question.question_text}
+                              </h3>
+                              {question.display_name && (
+                                <p className="text-sm text-gray-500 mb-1">
+                                  Original: {question.question_text}
+                                </p>
+                              )}
+                              <div className="flex items-center space-x-4 text-sm text-gray-400">
+                                <span>Type: {question.question_type}</span>
+                                <span>Total responses: {question.chart_data.data.reduce((a, b) => a + b, 0)}</span>
+                              </div>
+                            </div>
+
+                            <div className="w-full max-w-4xl">
+                              <CustomBarChart
+                                chartData={question.chart_data}
+                                title={question.question_type === 'single'
+                                  ? 'Single Choice Responses'
+                                  : 'Multi-Choice Responses (Distinct Submissions per Option)'
+                                }
+                              />
+                            </div>
+
+                            <div className="mt-4 text-xs text-gray-500">
+                              {question.question_type === 'single' &&
+                                "Single-choice: Shows number of submissions for each answer option"
+                              }
+                              {question.question_type === 'multi' &&
+                                "Multi-choice: Shows number of distinct submissions that selected each option (submissions may select multiple options)"
+                              }
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* No Questions Message */}
+                {reportingData.question_responses.length === 0 && (
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <div className="text-center text-gray-500">
+                      <p>No single-choice or multi-choice questions found in this survey.</p>
+                      <p className="text-sm mt-2">Charts are only shown for single and multi-choice questions.</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-center text-gray-500">
+                  No reporting data available
+                </div>
+              </div>
+            )}
           </div>
         )}
 
