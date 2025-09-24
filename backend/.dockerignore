@@ -1,0 +1,40 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+.DS_Store
+.vscode
+
+# Local database
+*.db
+*.sqlite3
+
+# Alembic
+alembic.ini
+
+# Environment files
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Documentation
+README.md
+*.md
