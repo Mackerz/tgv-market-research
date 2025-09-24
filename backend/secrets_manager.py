@@ -6,8 +6,17 @@ Handles retrieval of secrets from Google Cloud Secret Manager
 import os
 import logging
 from typing import Optional
-from google.cloud import secretmanager
-from google.api_core.exceptions import NotFound, PermissionDenied
+
+# Try to import Google Cloud dependencies, but continue without them if not available
+try:
+    from google.cloud import secretmanager
+    from google.api_core.exceptions import NotFound, PermissionDenied
+    GOOGLE_CLOUD_AVAILABLE = True
+except ImportError:
+    GOOGLE_CLOUD_AVAILABLE = False
+    secretmanager = None
+    NotFound = Exception
+    PermissionDenied = Exception
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +27,15 @@ class SecretsManager:
         self.project_id = project_id or os.getenv("GCP_PROJECT_ID")
         self.client = None
 
-        if self.project_id:
+        if self.project_id and GOOGLE_CLOUD_AVAILABLE:
             try:
                 self.client = secretmanager.SecretManagerServiceClient()
                 logger.info(f"✅ Secret Manager client initialized for project: {self.project_id}")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to initialize Secret Manager client: {e}")
                 logger.info("Falling back to environment variables")
+        elif not GOOGLE_CLOUD_AVAILABLE:
+            logger.info("Google Cloud libraries not available, using environment variables only")
         else:
             logger.info("No GCP_PROJECT_ID found, using environment variables only")
 

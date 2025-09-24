@@ -46,3 +46,26 @@ class Media(MediaBase):
             return json.loads(self.reporting_labels)
         except:
             return []
+
+class MediaGalleryItem(BaseModel):
+    id: int
+    media_type: str  # 'photo' or 'video'
+    media_url: str
+    thumbnail_url: Optional[str] = None
+    description: Optional[str] = None
+    transcript: Optional[str] = None
+    brands_detected: List[str] = []
+    reporting_labels: List[str] = []
+    submission_id: int
+    submission_email: str
+    submission_region: str
+    submission_gender: str
+    submission_age: int
+    question: str
+    responded_at: datetime
+
+class MediaGalleryResponse(BaseModel):
+    items: List[MediaGalleryItem]
+    total_count: int
+    photo_count: int
+    video_count: int

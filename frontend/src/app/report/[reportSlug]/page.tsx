@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import MediaGallery from '../../components/MediaGallery'
 
 interface Submission {
   id: number
@@ -126,7 +127,7 @@ interface ReportingData {
   media_analysis: MediaData
 }
 
-type TabType = 'submissions' | 'reporting' | 'settings'
+type TabType = 'submissions' | 'reporting' | 'media-gallery' | 'settings'
 type ApprovalFilter = 'all' | 'approved' | 'rejected'
 type SortBy = 'submitted_at' | 'email' | 'age' | 'region'
 
@@ -539,6 +540,7 @@ export default function ReportPage() {
               {[
                 { key: 'submissions', label: 'Submissions' },
                 { key: 'reporting', label: 'Reporting' },
+                { key: 'media-gallery', label: 'Media Gallery' },
                 { key: 'settings', label: 'Settings' }
               ].map((tab) => (
                 <button
@@ -1035,6 +1037,10 @@ export default function ReportPage() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'media-gallery' && (
+          <MediaGallery reportSlug={reportSlug} />
         )}
 
         {activeTab === 'settings' && (

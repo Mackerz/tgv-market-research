@@ -679,6 +679,36 @@ def get_reporting_data(survey_slug: str, db: Session = Depends(get_db)):
 
     return reporting_data
 
+@app.get("/api/reports/{survey_slug}/media-gallery", response_model=media_schemas.MediaGalleryResponse)
+def get_media_gallery(
+    survey_slug: str,
+    labels: Optional[str] = None,
+    regions: Optional[str] = None,
+    genders: Optional[str] = None,
+    age_min: Optional[int] = None,
+    age_max: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    """Get media gallery for a survey with optional filtering"""
+    # Parse comma-separated filter parameters
+    labels_list = labels.split(',') if labels else None
+    regions_list = regions.split(',') if regions else None
+    genders_list = genders.split(',') if genders else None
+
+    try:
+        gallery_data = media_crud.get_media_gallery(
+            db=db,
+            survey_slug=survey_slug,
+            labels=labels_list,
+            regions=regions_list,
+            genders=genders_list,
+            age_min=age_min,
+            age_max=age_max
+        )
+        return gallery_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch media gallery: {str(e)}")
+
 # =============================================================================
 # SETTINGS ENDPOINTS
 # =============================================================================
@@ -799,6 +829,57 @@ import io
 async def proxy_media(gcs_url: str, request: Request):
     """Proxy GCS media files for frontend consumption with video streaming support"""
     try:
+        # Handle development mode simulated uploads
+        if gcs_url.startswith('file://simulated-upload/'):
+            # In development mode, return a placeholder image or video
+            file_path = gcs_url.replace('file://simulated-upload/', '')
+
+            # Determine content type based on file extension
+            content_type = "application/octet-stream"
+            if file_path.lower().endswith(('.jpg', '.jpeg')):
+                content_type = "image/jpeg"
+                # Return a simple SVG placeholder for images
+                placeholder_content = '''<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+                    <rect width="400" height="300" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>
+                    <text x="200" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">📷 Simulated Photo</text>
+                    <text x="200" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#999">Development Mode</text>
+                    <text x="200" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#aaa">''' + file_path.split('/')[-1] + '''</text>
+                </svg>'''
+                return Response(
+                    content=placeholder_content,
+                    media_type="image/svg+xml",
+                    headers={
+                        "Cache-Control": "public, max-age=300",
+                        "Access-Control-Allow-Origin": "http://localhost:3000",
+                        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                        "Access-Control-Allow-Headers": "Range, Content-Range"
+                    }
+                )
+            elif file_path.lower().endswith('.mp4'):
+                content_type = "video/mp4"
+                # For videos, return an SVG placeholder explaining it's simulated
+                placeholder_content = '''<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+                    <rect width="600" height="400" fill="#2a2a2a" stroke="#555" stroke-width="2"/>
+                    <circle cx="300" cy="200" r="50" fill="#666" stroke="#999" stroke-width="2"/>
+                    <polygon points="285,175 285,225 325,200" fill="#fff"/>
+                    <text x="300" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#ccc">🎥 Simulated Video</text>
+                    <text x="300" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#999">Development Mode</text>
+                    <text x="300" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#777">''' + file_path.split('/')[-1] + '''</text>
+                    <text x="300" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#555">This would be a real video in production</text>
+                </svg>'''
+                return Response(
+                    content=placeholder_content,
+                    media_type="image/svg+xml",
+                    headers={
+                        "Cache-Control": "public, max-age=300",
+                        "Access-Control-Allow-Origin": "http://localhost:3000",
+                        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                        "Access-Control-Allow-Headers": "Range, Content-Range"
+                    }
+                )
+            else:
+                return HTTPException(status_code=400, detail="Unsupported simulated file type")
+
         # Parse the GCS URL
         if not gcs_url.startswith('gs://'):
             raise HTTPException(status_code=400, detail="Invalid GCS URL")
