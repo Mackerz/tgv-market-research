@@ -416,10 +416,15 @@ export default function ReportPage() {
       return `${calculatedHeight}px`
     }
 
+    const containerHeight = hasLongLabels ? Math.max(chartData.labels.length * 80, 400) : 500
+
     return (
       <div className="w-full">
         <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{title}</h3>
-        <div className={`bg-white p-2 rounded-lg border ${hasLongLabels ? 'space-y-4' : 'flex items-end justify-center space-x-1'}`} style={{ height: '500px' }}>
+        <div
+          className={`bg-white p-2 rounded-lg border ${hasLongLabels ? 'space-y-6' : 'flex items-end justify-center space-x-1'}`}
+          style={{ height: `${containerHeight}px` }}
+        >
           {chartData.labels.map((label, index) => {
             const value = chartData.data[index]
             const scaledHeight = getScaledHeight(value)
@@ -437,7 +442,7 @@ export default function ReportPage() {
                       className="h-12 rounded-lg flex items-center justify-end pr-4 text-white text-sm font-semibold transition-all duration-500"
                       style={{
                         backgroundColor: color,
-                        width: `${(value / maxValue) * 100}%`
+                        width: `${Math.max((value / maxValue) * 100, 60)}%`
                       }}
                     >
                       {value > 0 && (

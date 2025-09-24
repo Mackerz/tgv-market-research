@@ -132,9 +132,17 @@ def analyze_media_content(response_id: int, media_type: str, media_url: str):
         db.close()
         logger.info(f"🔚 Database connection closed for response {response_id}")
 
+# CORS Configuration using Secret Manager
+from secrets_manager import get_allowed_origins
+
+allowed_origins_str = get_allowed_origins()
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
+logger.info(f"✅ Configured CORS origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

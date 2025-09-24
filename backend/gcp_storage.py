@@ -9,6 +9,9 @@ from fastapi import UploadFile
 
 class GCPStorageManager:
     def __init__(self):
+        # Import secrets manager
+        from secrets_manager import get_gcp_project_id, get_gcs_bucket_name
+
         self.enabled = os.getenv("GCP_STORAGE_ENABLED", "false").lower() == "true"
 
         if not self.enabled:
@@ -18,9 +21,11 @@ class GCPStorageManager:
             self.video_bucket = None
             return
 
-        self.photo_bucket_name = os.getenv("GCP_STORAGE_BUCKET_PHOTOS", "survey-photos-bucket")
-        self.video_bucket_name = os.getenv("GCP_STORAGE_BUCKET_VIDEOS", "survey-videos-bucket")
-        self.project_id = os.getenv("GCP_PROJECT_ID", "your-project-id")
+        # Use secrets manager for configuration
+        bucket_name = get_gcs_bucket_name()
+        self.photo_bucket_name = bucket_name or os.getenv("GCP_STORAGE_BUCKET_PHOTOS", "survey-photos-bucket")
+        self.video_bucket_name = bucket_name or os.getenv("GCP_STORAGE_BUCKET_VIDEOS", "survey-videos-bucket")
+        self.project_id = get_gcp_project_id() or os.getenv("GCP_PROJECT_ID", "your-project-id")
 
         try:
             # Initialize client - will use service account key if provided

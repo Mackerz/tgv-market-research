@@ -12,51 +12,59 @@ def create_sample_survey():
     """Create a sample survey with all question types"""
 
     sample_survey = {
-        "survey_slug": "sample-survey-2024",
-        "name": "Customer Feedback Survey",
+        "survey_slug": "monster-lifestyle",
+        "name": "Be the best",
         "survey_flow": [
             {
                 "id": "satisfaction",
-                "question": "How satisfied are you with our service?",
+                "question": "How many times do you drink Monster Energy?",
                 "question_type": "single",
                 "required": True,
                 "options": [
-                    "Very Satisfied",
-                    "Satisfied",
-                    "Neutral",
-                    "Dissatisfied",
-                    "Very Dissatisfied"
+                    "Daily",
+                    "A few times a week",
+                    "Weekly",
+                    "Monthly",
+                    "Occasionally"
                 ]
             },
             {
                 "id": "features",
-                "question": "Which features do you use most often? (Select all that apply)",
+                "question": "What is your favourite flavours of Monster Energy? (Select all that apply)",
                 "question_type": "multi",
                 "required": True,
                 "options": [
-                    "Dashboard",
-                    "Reports",
-                    "User Management",
-                    "Settings",
-                    "Mobile App",
-                    "API Integration"
+                            "Original Green Monster",
+                            "Zero Sugar Monster",
+                            "Monster Energy Reserve",
+                            "Monster Nitro",
+                            "Zero Ultra",
+                            "Ultra",
+                            "Rio Punch",
+                            "Ripper",
+                            "Pipeline Punch",
+                            "Mango Loco",
+                            "Ultra Fiesta (Mango)",
+                            "Lewis Hamilton Zero",
+                            "Bad Apple",
+                            "Reserve Orange Dreamsicle",
                 ]
             },
             {
                 "id": "feedback",
-                "question": "Please provide detailed feedback about your experience:",
+                "question": "Monster is the relentless pursuit of victory, being your best.  Explain why you think Monster helps you being at the top of your game.",
                 "question_type": "free_text",
                 "required": True
             },
             {
                 "id": "screenshot",
-                "question": "If you encountered any issues, please upload a screenshot:",
+                "question": "Upload a photo of the can of Monster you are drinking:",
                 "question_type": "photo",
                 "required": False
             },
             {
                 "id": "testimonial",
-                "question": "Would you like to record a short testimonial video?",
+                "question": "Would you like to record a short testimonial video of how monster is helping you be the best?",
                 "question_type": "video",
                 "required": False
             }
