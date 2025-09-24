@@ -487,6 +487,12 @@ def get_survey_reporting_labels(survey_id: int, db: Session = Depends(get_db)):
     """Get a frequency analysis of reporting labels for a survey"""
     return get_survey_label_summary(survey_id, db)
 
+@app.get("/api/surveys/{survey_id}/label-summary")
+def get_survey_label_analysis(survey_id: int, db: Session = Depends(get_db)):
+    """Get comprehensive label analysis including AI-generated themes and insights"""
+    from gemini_labeling import summarize_survey_labels
+    return summarize_survey_labels(survey_id, db)
+
 # =============================================================================
 # REPORTING ENDPOINTS
 # =============================================================================

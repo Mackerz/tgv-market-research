@@ -164,6 +164,133 @@ JSON array of labels:"""
 
         return sorted_labels
 
+    def summarize_labels(self, all_labels: List[str]) -> Dict[str, any]:
+        """
+        Use Gemini to consolidate and summarize similar labels into broader market research themes
+
+        Args:
+            all_labels: Flat list of all labels from survey responses
+
+        Returns:
+            Dictionary containing consolidated themes and key insights
+        """
+        if not self.enabled or not self.model:
+            # Simulate label summarization in development
+            logger.info("🏷️ [SIMULATION] Summarizing labels into themes")
+            return {
+                "themes": [
+                    {
+                        "theme": "Product Engagement",
+                        "frequency": 12,
+                        "consolidated_labels": ["product_interaction", "product_usage", "brand_engagement"],
+                        "description": "Strong consumer interaction with products and brands"
+                    },
+                    {
+                        "theme": "Consumer Sentiment",
+                        "frequency": 8,
+                        "consolidated_labels": ["positive_sentiment", "satisfaction", "emotional_response"],
+                        "description": "Overall positive emotional responses from consumers"
+                    },
+                    {
+                        "theme": "Environmental Context",
+                        "frequency": 6,
+                        "consolidated_labels": ["home_environment", "indoor_usage", "lifestyle_context"],
+                        "description": "Home-based product usage and lifestyle integration"
+                    }
+                ],
+                "insights": [
+                    "Consumers show strong positive engagement with products in home environments",
+                    "Brand awareness and interaction levels are consistently high across responses",
+                    "Product usage primarily occurs in comfortable, personal spaces"
+                ]
+            }
+
+        logger.info("🤖 Generating label summary with Gemini")
+
+        try:
+            # Count label frequencies
+            label_counts = {}
+            for label in all_labels:
+                label_counts[label] = label_counts.get(label, 0) + 1
+
+            # Sort labels by frequency for the prompt
+            sorted_labels = sorted(label_counts.items(), key=lambda x: x[1], reverse=True)
+
+            # Format labels for the prompt
+            labels_text = "\n".join([f"- {label}: {count} occurrences" for label, count in sorted_labels])
+
+            # Create prompt for label consolidation
+            prompt = f"""
+You are a market research analyst tasked with consolidating and summarizing survey response labels into actionable market research themes.
+
+Here are all the labels generated from media analysis across survey responses, with their frequency counts:
+
+{labels_text}
+
+Your task:
+1. Group similar/related labels into 3-6 high-level market research themes
+2. For each theme, provide a clear business-relevant name and description
+3. Calculate the total frequency for each theme (sum of constituent labels)
+4. Generate 3-5 key insights based on the consolidated themes
+
+Return your analysis in JSON format:
+{{
+    "themes": [
+        {{
+            "theme": "Theme Name",
+            "frequency": 15,
+            "consolidated_labels": ["label1", "label2", "label3"],
+            "description": "Clear description of what this theme represents for market research"
+        }}
+    ],
+    "insights": [
+        "Actionable insight based on the consolidated themes",
+        "Another key finding for market researchers"
+    ]
+}}
+
+Focus on:
+- Grouping semantically similar labels (e.g., "positive_sentiment", "satisfaction", "happy_experience")
+- Creating themes that are meaningful for business decision-making
+- Providing insights that would help guide marketing, product, or strategy decisions
+- Being concise but comprehensive
+
+JSON response:"""
+
+            # Generate content
+            response = self.model.generate_content(prompt)
+            response_text = response.text.strip()
+
+            # Parse the response
+            try:
+                # Try to parse as JSON directly
+                summary = json.loads(response_text)
+
+                if isinstance(summary, dict) and "themes" in summary and "insights" in summary:
+                    logger.info(f"✅ Generated label summary with {len(summary.get('themes', []))} themes")
+                    logger.info(f"🔍 Key themes: {[theme.get('theme', 'Unknown') for theme in summary.get('themes', [])]}")
+                    return summary
+                else:
+                    raise ValueError("Response does not contain expected structure")
+
+            except json.JSONDecodeError:
+                # If direct parsing fails, try to extract JSON from text
+                import re
+                json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+                if json_match:
+                    summary = json.loads(json_match.group())
+                    if isinstance(summary, dict) and "themes" in summary:
+                        logger.info(f"✅ Generated label summary with {len(summary.get('themes', []))} themes")
+                        return summary
+
+                logger.error(f"❌ Failed to parse Gemini summary response as JSON: {response_text}")
+                return {"themes": [], "insights": []}
+
+        except Exception as e:
+            logger.error(f"❌ Gemini label summarization failed: {str(e)}")
+            logger.error(f"❌ Error type: {type(e).__name__}")
+            return {"themes": [], "insights": []}
+
 # Global instance
 gemini_labeler = GeminiLabelGenerator()
 
@@ -192,3 +319,53 @@ def get_survey_label_summary(survey_id: int, db) -> Dict[str, int]:
                             logger.warning(f"Failed to parse labels for media {media.id}")
 
     return gemini_labeler.get_label_summary(all_labels)
+
+def summarize_survey_labels(survey_id: int, db) -> Dict[str, any]:
+    """
+    Get a comprehensive label analysis including both raw counts and AI-generated summaries
+
+    Returns:
+        Dictionary containing raw label counts, summarized themes, and key insights
+    """
+    from survey_crud import get_submissions_by_survey
+
+    # Get all submissions for the survey
+    submissions = get_submissions_by_survey(db, survey_id)
+
+    all_labels = []
+    all_label_strings = []
+
+    for submission in submissions:
+        for response in submission.responses:
+            if response.media_analysis:
+                for media in response.media_analysis:
+                    if media.reporting_labels:
+                        try:
+                            labels = json.loads(media.reporting_labels)
+                            all_labels.extend(labels)  # Flatten all labels
+                            all_label_strings.append(', '.join(labels))
+                        except json.JSONDecodeError:
+                            logger.warning(f"Failed to parse labels for media {media.id}")
+
+    if not all_labels:
+        return {
+            "raw_label_counts": {},
+            "summarized_themes": [],
+            "key_insights": [],
+            "total_responses": 0,
+            "unique_labels": 0
+        }
+
+    # Get raw frequency counts
+    raw_counts = gemini_labeler.get_label_summary([all_labels])
+
+    # Generate AI summary of the labels
+    summarized_themes = gemini_labeler.summarize_labels(all_labels)
+
+    return {
+        "raw_label_counts": raw_counts,
+        "summarized_themes": summarized_themes.get("themes", []),
+        "key_insights": summarized_themes.get("insights", []),
+        "total_responses": len([l for labels in [all_labels] for l in labels]),
+        "unique_labels": len(raw_counts)
+    }
