@@ -1,0 +1,19 @@
+steps:
+  # Build the container image using Docker with build args
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - --build-arg=NEXT_PUBLIC_API_URL=https://tmg-market-research-backend-953615400721.us-central1.run.app
+      - -t
+      - gcr.io/tmg-market-research/tmg-market-research-frontend-fixed
+      - .
+
+# Store the image in Google Container Registry
+images:
+  - gcr.io/tmg-market-research/tmg-market-research-frontend-fixed
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: '100'
+
+timeout: '1200s'
