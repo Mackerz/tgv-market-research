@@ -6,6 +6,7 @@ import SingleChoiceQuestion from "./questions/SingleChoiceQuestion";
 import MultipleChoiceQuestion from "./questions/MultipleChoiceQuestion";
 import PhotoQuestion from "./questions/PhotoQuestion";
 import VideoQuestion from "./questions/VideoQuestion";
+import { apiUrl } from "@/config/api";
 
 interface Survey {
   id: number;
@@ -60,7 +61,7 @@ export default function QuestionComponent({
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/submissions/${submissionId}/responses`, {
+      const response = await fetch(apiUrl(`/api/submissions/${submissionId}/responses`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,10 +136,10 @@ export default function QuestionComponent({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
       {/* Progress Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
           <span className="text-sm font-medium text-gray-600">
             Question {currentQuestionIndex + 1} of {survey.survey_flow.length}
           </span>
@@ -156,11 +157,11 @@ export default function QuestionComponent({
 
       {/* Question */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 leading-tight">
           {currentQuestion.question}
           {currentQuestion.required && <span className="text-red-500 ml-1">*</span>}
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-sm sm:text-base">
           {currentQuestion.required ? 'This question is required.' : 'This question is optional.'}
         </p>
       </div>
@@ -176,12 +177,12 @@ export default function QuestionComponent({
       {renderQuestion()}
 
       {/* Navigation Info */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <div className="flex justify-between items-center text-sm text-gray-500">
-          <span>
+      <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm text-gray-500 space-y-2 sm:space-y-0">
+          <span className="order-2 sm:order-1">
             {isLastQuestion ? 'This is the final question' : `${survey.survey_flow.length - currentQuestionIndex - 1} questions remaining`}
           </span>
-          <span>
+          <span className="order-1 sm:order-2 font-medium">
             Survey: {survey.name}
           </span>
         </div>

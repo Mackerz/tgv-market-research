@@ -38,3 +38,6 @@ alembic.ini
 # Documentation
 README.md
 *.md
+
+# Credentials
+*.json

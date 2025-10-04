@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import PersonalInfoForm from "@/components/survey/PersonalInfoForm";
 import QuestionComponent from "@/components/survey/QuestionComponent";
 import SurveyComplete from "@/components/survey/SurveyComplete";
+import { apiUrl } from "@/config/api";
 
 interface Survey {
   id: number;
@@ -49,7 +50,7 @@ export default function SurveyPage() {
 
   const fetchSurvey = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/surveys/slug/${surveySlug}`);
+      const response = await fetch(apiUrl(`/api/surveys/slug/${surveySlug}`));
       if (!response.ok) {
         throw new Error('Survey not found');
       }
@@ -64,7 +65,7 @@ export default function SurveyPage() {
 
   const fetchProgress = async (submissionId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/submissions/${submissionId}/progress`);
+      const response = await fetch(apiUrl(`/api/submissions/${submissionId}/progress`));
       if (response.ok) {
         const data = await response.json();
         setProgress(data);
@@ -111,7 +112,7 @@ export default function SurveyPage() {
   const handleSurveyComplete = async () => {
     if (submissionId) {
       try {
-        await fetch(`http://localhost:8000/api/submissions/${submissionId}/complete`, {
+        await fetch(apiUrl(`/api/submissions/${submissionId}/complete`), {
           method: 'PUT',
         });
         setCurrentStep('complete');
@@ -170,10 +171,10 @@ export default function SurveyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-2xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{survey.name}</h1>
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 leading-tight">{survey.name}</h1>
           {progress && (
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
               <div

@@ -30,10 +30,12 @@ class GCPStorageManager:
         try:
             # Initialize client - will use service account key if provided
             credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            if credentials_path:
+            if credentials_path and os.path.exists(credentials_path):
+                print(f"🔑 Using service account key: {credentials_path}")
                 self.client = storage.Client.from_service_account_json(credentials_path)
             else:
                 # Will use default credentials (useful in GCP environment)
+                print(f"🔑 Using default credentials for project: {self.project_id}")
                 self.client = storage.Client(project=self.project_id)
 
             self.photo_bucket = self.client.bucket(self.photo_bucket_name)

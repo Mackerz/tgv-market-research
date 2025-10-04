@@ -6,7 +6,8 @@ Sample script to create a demo survey using the survey system API
 import requests
 import json
 
-API_BASE_URL = "http://localhost:8000"
+# API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "https://tmg-market-research-backend-953615400721.us-central1.run.app"
 
 def create_sample_survey():
     """Create a sample survey with all question types"""
@@ -84,7 +85,7 @@ def create_sample_survey():
             print(f"✅ Survey created successfully!")
             print(f"Survey ID: {survey['id']}")
             print(f"Survey Slug: {survey['survey_slug']}")
-            print(f"Survey URL: http://localhost:3000/survey/{survey['survey_slug']}")
+            print(f"Survey URL: {API_BASE_URL}/survey/{survey['survey_slug']}")
             return survey
         else:
             print(f"❌ Failed to create survey: {response.status_code}")
@@ -107,7 +108,7 @@ def get_all_surveys():
                 print(f"  • {survey['name']} (slug: {survey['survey_slug']})")
                 print(f"    Status: {'Active' if survey['is_active'] else 'Inactive'}")
                 print(f"    Questions: {len(survey['survey_flow'])}")
-                print(f"    URL: http://localhost:3000/survey/{survey['survey_slug']}")
+                print(f"    URL: {API_BASE_URL}/survey/{survey['survey_slug']}")
                 print()
             return surveys
         else:

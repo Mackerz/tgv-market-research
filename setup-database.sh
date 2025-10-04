@@ -68,8 +68,7 @@ else
         --region=$REGION \
         --authorized-networks=0.0.0.0/0 \
         --storage-type=SSD \
-        --storage-size=10GB \
-        --enable-bin-log
+        --storage-size=10GB
 fi
 
 # Set root password

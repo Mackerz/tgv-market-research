@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { VideoCameraIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { apiUrl } from "@/config/api";
 
 interface SurveyQuestion {
   id: string;
@@ -60,7 +61,7 @@ export default function VideoQuestion({ question, onSubmit, loading, surveySlug 
       const formData = new FormData();
       formData.append('file', uploadedFile);
 
-      const response = await fetch(`http://localhost:8000/api/surveys/${surveySlug}/upload/video`, {
+      const response = await fetch(apiUrl(`/api/surveys/${surveySlug}/upload/video`), {
         method: 'POST',
         body: formData,
       });
@@ -136,13 +137,13 @@ export default function VideoQuestion({ question, onSubmit, loading, surveySlug 
       {/* File Upload Area */}
       <div>
         {!uploadedFile ? (
-          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <VideoCameraIcon className="w-10 h-10 mb-3 text-gray-400" />
-              <p className="mb-2 text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span> or drag and drop
+          <label className="flex flex-col items-center justify-center w-full h-48 sm:h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors touch-manipulation">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4">
+              <VideoCameraIcon className="w-8 h-8 sm:w-10 sm:h-10 mb-3 text-gray-400" />
+              <p className="mb-2 text-sm text-center text-gray-500">
+                <span className="font-semibold">Tap to upload</span> or drag and drop
               </p>
-              <p className="text-xs text-gray-500">MP4, MOV, AVI up to 100MB</p>
+              <p className="text-xs text-center text-gray-500">MP4, MOV, AVI up to 100MB</p>
             </div>
             <input
               ref={fileInputRef}
@@ -156,11 +157,11 @@ export default function VideoQuestion({ question, onSubmit, loading, surveySlug 
         ) : (
           <div className="relative">
             {/* Preview */}
-            <div className="w-full max-w-md mx-auto bg-gray-100 rounded-lg overflow-hidden">
+            <div className="w-full max-w-sm sm:max-w-md mx-auto bg-gray-100 rounded-lg overflow-hidden">
               <video
                 src={previewUrl}
                 controls
-                className="w-full h-64 object-cover"
+                className="w-full h-48 sm:h-64 object-cover"
                 preload="metadata"
               />
             </div>
@@ -169,10 +170,10 @@ export default function VideoQuestion({ question, onSubmit, loading, surveySlug 
             <button
               type="button"
               onClick={handleRemoveFile}
-              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors touch-manipulation"
               disabled={loading || uploading}
             >
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* File Info */}
@@ -228,13 +229,13 @@ export default function VideoQuestion({ question, onSubmit, loading, surveySlug 
       )}
 
       {/* Submit Buttons */}
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         {!question.required && (
           <button
             type="button"
             onClick={handleSkip}
             disabled={loading || uploading}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           >
             Skip
           </button>
@@ -243,7 +244,7 @@ export default function VideoQuestion({ question, onSubmit, loading, surveySlug 
         <button
           type="submit"
           disabled={loading || uploading || (question.required && !uploadedUrl)}
-          className={`flex-1 py-3 px-6 rounded-lg text-white font-medium transition-colors ${
+          className={`flex-1 py-3 px-6 rounded-lg text-white font-medium transition-colors touch-manipulation ${
             loading || uploading || (question.required && !uploadedUrl)
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'

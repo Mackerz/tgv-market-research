@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { apiUrl } from '@/config/api'
 
 interface MediaGalleryItem {
   id: number
@@ -76,7 +77,7 @@ const MediaModal = ({ item, onClose }: MediaModalProps) => {
           <div className="mb-4">
             {item.media_type === 'photo' ? (
               <img
-                src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`}
+                src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`)}
                 alt="Response media"
                 className="w-full h-auto max-h-96 object-contain mx-auto rounded border"
                 onError={(e) => {
@@ -98,12 +99,12 @@ const MediaModal = ({ item, onClose }: MediaModalProps) => {
                   const target = e.target as HTMLVideoElement
                   target.style.display = 'none'
                   const errorDiv = document.createElement('div')
-                  errorDiv.innerHTML = `<div class="text-red-500 text-center p-4">Error loading video</div><div class="text-xs text-gray-400 mt-1 text-center"><a href="http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}" target="_blank" class="underline">Try opening video directly</a></div>`
+                  errorDiv.innerHTML = `<div class="text-red-500 text-center p-4">Error loading video</div><div class="text-xs text-gray-400 mt-1 text-center"><a href="${apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`)}" target="_blank" class="underline">Try opening video directly</a></div>`
                   target.parentNode?.insertBefore(errorDiv, target.nextSibling)
                 }}
               >
                 <source
-                  src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`}
+                  src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`)}
                   type="video/mp4"
                 />
                 <p className="text-red-500 text-center p-4">
@@ -234,7 +235,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
       if (ageMin !== undefined) params.append('age_min', ageMin.toString())
       if (ageMax !== undefined) params.append('age_max', ageMax.toString())
 
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/media-gallery?${params}`)
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/media-gallery?${params}`))
       if (!response.ok) {
         throw new Error('Failed to fetch media gallery')
       }
@@ -486,7 +487,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
                   {item.media_type === 'photo' ? (
                     <>
                       <img
-                        src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`}
+                        src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`)}
                         alt="Response media"
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -510,7 +511,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
                         muted
                       >
                         <source
-                          src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`}
+                          src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(item.media_url)}`)}
                           type="video/mp4"
                         />
                       </video>

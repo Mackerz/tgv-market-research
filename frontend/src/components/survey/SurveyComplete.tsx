@@ -16,7 +16,7 @@ export default function SurveyComplete({ surveyName }: SurveyCompleteProps) {
         <CheckCircleIcon className="w-20 h-20 text-green-500 mx-auto mb-4" />
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Survey Completed!</h2>
         <p className="text-lg text-gray-600 mb-4">
-          Thank you for completing <span className="font-semibold">"{surveyName}"</span>
+          Thank you for completing <span className="font-semibold">&ldquo;{surveyName}&rdquo;</span>
         </p>
       </div>
 

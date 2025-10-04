@@ -74,13 +74,13 @@ export default function FreeTextQuestion({ question, onSubmit, loading }: FreeTe
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         {!question.required && (
           <button
             type="button"
             onClick={handleSkip}
             disabled={loading}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           >
             Skip
           </button>
@@ -89,7 +89,7 @@ export default function FreeTextQuestion({ question, onSubmit, loading }: FreeTe
         <button
           type="submit"
           disabled={loading || (question.required && !answer.trim())}
-          className={`flex-1 py-3 px-6 rounded-lg text-white font-medium transition-colors ${
+          className={`flex-1 py-3 px-6 rounded-lg text-white font-medium transition-colors touch-manipulation ${
             loading || (question.required && !answer.trim())
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'

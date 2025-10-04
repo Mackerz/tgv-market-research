@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import { apiUrl } from '../config/api';
 
 interface User {
   id: number;
@@ -23,7 +23,7 @@ interface Post {
 }
 
 export default function Home() {
-  const [apiData, setApiData] = useState<any>(null);
+  const [apiData, setApiData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -33,7 +33,7 @@ export default function Home() {
 
   useEffect(() => {
     // Check API health
-    fetch('http://localhost:8000/api/health')
+    fetch(apiUrl('/api/health'))
       .then(res => res.json())
       .then(data => {
         setApiData(data);
@@ -49,7 +49,7 @@ export default function Home() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/users/');
+      const response = await fetch(apiUrl('/api/users/'));
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -59,7 +59,7 @@ export default function Home() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/posts/');
+      const response = await fetch(apiUrl('/api/posts/'));
       const data = await response.json();
       setPosts(data);
     } catch (error) {
@@ -70,7 +70,7 @@ export default function Home() {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/api/users/', {
+      const response = await fetch(apiUrl('/api/users/'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser),
@@ -88,7 +88,7 @@ export default function Home() {
     e.preventDefault();
     if (!selectedUserId) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/users/${selectedUserId}/posts/`, {
+      const response = await fetch(apiUrl(`/api/users/${selectedUserId}/posts/`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPost),
@@ -144,7 +144,7 @@ export default function Home() {
         is_active: true
       };
 
-      const response = await fetch('http://localhost:8000/api/surveys/', {
+      const response = await fetch(apiUrl('/api/surveys/'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(demoSurvey),
@@ -178,8 +178,8 @@ export default function Home() {
           ) : apiData ? (
             <div>
               <p className="text-green-600">✅ Connected to FastAPI backend</p>
-              <p>Status: {apiData.status}</p>
-              <p>Database: {apiData.database}</p>
+              <p>Status: {(apiData as any).status}</p>
+              <p>Database: {(apiData as any).database}</p>
             </div>
           ) : (
             <p className="text-red-600">❌ Failed to connect to backend</p>

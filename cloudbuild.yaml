@@ -48,7 +48,7 @@ steps:
       - '--min-instances=0'
       - '--max-instances=10'
       - '--set-env-vars=ENVIRONMENT=production'
-      - '--set-secrets=DATABASE_URL=database-url:latest,GCP_PROJECT_ID=gcp-project-id:latest'
+      - '--set-secrets=DATABASE_URL=database-url:latest,GCP_PROJECT_ID=gcp-project-id:latest,GCS_BUCKET_NAME=gcs-bucket-name:latest,GCP_STORAGE_BUCKET_PHOTOS=gcp-storage-bucket-photos:latest,GCP_STORAGE_BUCKET_VIDEOS=gcp-storage-bucket-videos:latest,GCP_STORAGE_ENABLED=gcp-storage-enabled:latest,GCP_AI_ENABLED=gcp-ai-enabled:latest'
 
   # Deploy frontend to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -66,7 +66,7 @@ steps:
       - '--cpu=1'
       - '--min-instances=0'
       - '--max-instances=5'
-      - '--set-env-vars=NEXT_PUBLIC_API_URL=https://tmg-market-research-backend-HASH-uc.a.run.app'
+      - '--set-env-vars=NEXT_PUBLIC_API_URL=https://tmg-market-research-backend-mscgtmweha-uc.a.run.app'
 
 images:
   - 'gcr.io/$PROJECT_ID/tmg-market-research-backend:$COMMIT_SHA'

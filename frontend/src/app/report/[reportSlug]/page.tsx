@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import MediaGallery from '../../components/MediaGallery'
+import { apiUrl } from '@/config/api'
 
 interface Submission {
   id: number
@@ -168,7 +169,7 @@ export default function ReportPage() {
       params.append('sort_by', sortBy)
       params.append('sort_order', sortOrder)
 
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/submissions?${params}`)
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions?${params}`))
       if (!response.ok) {
         throw new Error('Failed to fetch submissions')
       }
@@ -184,7 +185,7 @@ export default function ReportPage() {
 
   const fetchSubmissionDetail = async (submissionId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/submissions/${submissionId}`)
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions/${submissionId}`))
       if (!response.ok) {
         throw new Error('Failed to fetch submission details')
       }
@@ -198,7 +199,7 @@ export default function ReportPage() {
 
   const handleApproveSubmission = async (submissionId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/submissions/${submissionId}/approve`, {
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions/${submissionId}/approve`), {
         method: 'PUT'
       })
       if (!response.ok) {
@@ -217,7 +218,7 @@ export default function ReportPage() {
 
   const handleRejectSubmission = async (submissionId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/submissions/${submissionId}/reject`, {
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions/${submissionId}/reject`), {
         method: 'PUT'
       })
       if (!response.ok) {
@@ -238,7 +239,7 @@ export default function ReportPage() {
   const fetchSettings = async () => {
     try {
       setSettingsLoading(true)
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/settings`)
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings`))
       if (!response.ok) {
         throw new Error('Failed to fetch settings')
       }
@@ -264,7 +265,7 @@ export default function ReportPage() {
   const saveAgeRanges = async () => {
     try {
       setSettingsSaving(true)
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/settings/age-ranges`, {
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings/age-ranges`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +295,7 @@ export default function ReportPage() {
         display_name: displayName || null
       }))
 
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/settings/question-display-names`, {
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings/question-display-names`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -325,7 +326,7 @@ export default function ReportPage() {
     setTempAgeRanges([...tempAgeRanges, newRange])
   }
 
-  const updateAgeRange = (index: number, field: keyof AgeRange, value: any) => {
+  const updateAgeRange = (index: number, field: keyof AgeRange, value: string | number | null) => {
     const updatedRanges = [...tempAgeRanges]
     updatedRanges[index] = { ...updatedRanges[index], [field]: value }
     setTempAgeRanges(updatedRanges)
@@ -347,7 +348,7 @@ export default function ReportPage() {
   const fetchReportingData = async () => {
     try {
       setReportingLoading(true)
-      const response = await fetch(`http://localhost:8000/api/reports/${reportSlug}/data`)
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/data`))
       if (!response.ok) {
         throw new Error('Failed to fetch reporting data')
       }
@@ -724,7 +725,7 @@ export default function ReportPage() {
                             <div className="mb-3">
                               <div className="text-blue-600 mb-2">📷 Photo:</div>
                               <img
-                                src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(response.photo_url)}`}
+                                src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.photo_url)}`)}
                                 alt="Response photo"
                                 className="max-w-full h-auto max-h-64 rounded border"
                                 onError={(e) => {
@@ -754,7 +755,7 @@ export default function ReportPage() {
                                   const target = e.target as HTMLVideoElement;
                                   target.style.display = 'none';
                                   const errorDiv = document.createElement('div');
-                                  errorDiv.innerHTML = `<div class="text-red-500 text-sm">Error loading video</div><div class="text-xs text-gray-400 mt-1">Try <a href="http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}" target="_blank" class="underline">opening video directly</a></div>`;
+                                  errorDiv.innerHTML = `<div class="text-red-500 text-sm">Error loading video</div><div class="text-xs text-gray-400 mt-1">Try <a href="${apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url || '')}`)}" target="_blank" class="underline">opening video directly</a></div>`;
                                   target.parentNode?.insertBefore(errorDiv, target.nextSibling);
                                 }}
                                 onLoadStart={() => console.log('Video loading started')}
@@ -762,23 +763,23 @@ export default function ReportPage() {
                               >
                                 {/* Primary MP4 source */}
                                 <source
-                                  src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`}
+                                  src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`)}
                                   type="video/mp4; codecs=avc1.42E01E,mp4a.40.2"
                                 />
                                 {/* Fallback MP4 without codecs */}
                                 <source
-                                  src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`}
+                                  src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`)}
                                   type="video/mp4"
                                 />
                                 {/* Fallback generic video */}
                                 <source
-                                  src={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`}
+                                  src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`)}
                                   type="video/*"
                                 />
                                 <p className="text-red-500 text-sm">
                                   Your browser does not support the video tag.
                                   <a
-                                    href={`http://localhost:8000/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`}
+                                    href={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`)}
                                     target="_blank"
                                     className="underline ml-1"
                                   >
@@ -875,7 +876,7 @@ export default function ReportPage() {
                       {reportingData.completed_approved_submissions} Approved Submissions
                     </h2>
                     <p className="text-gray-600">
-                      Out of {reportingData.total_submissions} total completed submissions for "{reportingData.survey_name}"
+                      Out of {reportingData.total_submissions} total completed submissions for &ldquo;{reportingData.survey_name}&rdquo;
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
                       Generated at {new Date(reportingData.generated_at).toLocaleString()}

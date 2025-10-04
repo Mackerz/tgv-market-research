@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { apiUrl } from "@/config/api";
 
 interface PersonalInfoFormProps {
   surveySlug: string;
@@ -103,7 +104,7 @@ export default function PersonalInfoForm({ surveySlug, onComplete }: PersonalInf
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/surveys/${surveySlug}/submit`, {
+      const response = await fetch(apiUrl(`/api/surveys/${surveySlug}/submit`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

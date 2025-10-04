@@ -1,4 +1,5 @@
-FROM node:20-alpine AS base
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine AS base
+RUN apk add --no-cache nodejs npm
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -7,13 +8,17 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Set production API URL at build time
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build the application
 RUN npm run build
