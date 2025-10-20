@@ -1,0 +1,186 @@
+/**
+ * useSurvey Hook
+ * Manages survey state, navigation, and submission
+ */
+
+import { useState, useCallback, useEffect } from 'react';
+import { surveyService } from '@/lib/api';
+import type { Survey, SurveyQuestion, Submission, Response, SurveyProgress } from '@/types';
+import { useApi } from './useApi';
+
+interface UseSurveyOptions {
+  surveySlug: string;
+  onComplete?: (submissionId: number) => void;
+}
+
+interface UseSurveyReturn {
+  // Survey data
+  survey: Survey | null;
+  currentQuestion: SurveyQuestion | null;
+  submission: Submission | null;
+  progress: SurveyProgress | null;
+
+  // State
+  loading: boolean;
+  error: string | null;
+  currentIndex: number;
+  isLastQuestion: boolean;
+
+  // Actions
+  startSurvey: (email: string, region: string, age?: number) => Promise<void>;
+  submitResponse: (questionId: string, value: any) => Promise<void>;
+  nextQuestion: () => void;
+  previousQuestion: () => void;
+  completeAndSubmit: () => Promise<void>;
+  refetchProgress: () => Promise<void>;
+}
+
+export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurveyReturn {
+  // Fetch survey data
+  const {
+    data: survey,
+    loading: surveyLoading,
+    error: surveyError,
+  } = useApi<Survey>(
+    () => surveyService.getSurveyBySlug(surveySlug),
+    [surveySlug]
+  );
+
+  // Local state
+  const [submission, setSubmission] = useState<Submission | null>(null);
+  const [progress, setProgress] = useState<SurveyProgress | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [responseLoading, setResponseLoading] = useState(false);
+  const [responseError, setResponseError] = useState<string | null>(null);
+
+  // Derived state
+  const currentQuestion = survey?.survey_flow?.[currentIndex] || null;
+  const isLastQuestion = survey ? currentIndex === survey.survey_flow.length - 1 : false;
+  const loading = surveyLoading || responseLoading;
+  const error = surveyError || responseError;
+
+  // Start survey (create submission)
+  const startSurvey = useCallback(async (email: string, region: string, age?: number) => {
+    try {
+      setResponseLoading(true);
+      setResponseError(null);
+
+      const newSubmission = await surveyService.createSubmission(surveySlug, {
+        email,
+        region,
+        age,
+      });
+
+      setSubmission(newSubmission);
+      setCurrentIndex(0);
+
+      // Fetch initial progress
+      const initialProgress = await surveyService.getProgress(newSubmission.id);
+      setProgress(initialProgress);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start survey';
+      setResponseError(errorMessage);
+      throw err;
+    } finally {
+      setResponseLoading(false);
+    }
+  }, [surveySlug]);
+
+  // Submit response for current question
+  const submitResponse = useCallback(async (questionId: string, value: any) => {
+    if (!submission) {
+      throw new Error('No active submission');
+    }
+
+    try {
+      setResponseLoading(true);
+      setResponseError(null);
+
+      await surveyService.createResponse(submission.id, {
+        question_id: questionId,
+        value,
+      });
+
+      // Refresh progress
+      const updatedProgress = await surveyService.getProgress(submission.id);
+      setProgress(updatedProgress);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit response';
+      setResponseError(errorMessage);
+      throw err;
+    } finally {
+      setResponseLoading(false);
+    }
+  }, [submission]);
+
+  // Navigation
+  const nextQuestion = useCallback(() => {
+    if (survey && currentIndex < survey.survey_flow.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    }
+  }, [survey, currentIndex]);
+
+  const previousQuestion = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  }, [currentIndex]);
+
+  // Complete submission
+  const completeAndSubmit = useCallback(async () => {
+    if (!submission) {
+      throw new Error('No active submission');
+    }
+
+    try {
+      setResponseLoading(true);
+      setResponseError(null);
+
+      await surveyService.completeSubmission(submission.id);
+
+      if (onComplete) {
+        onComplete(submission.id);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to complete survey';
+      setResponseError(errorMessage);
+      throw err;
+    } finally {
+      setResponseLoading(false);
+    }
+  }, [submission, onComplete]);
+
+  // Refetch progress
+  const refetchProgress = useCallback(async () => {
+    if (!submission) return;
+
+    try {
+      const updatedProgress = await surveyService.getProgress(submission.id);
+      setProgress(updatedProgress);
+    } catch (err) {
+      console.error('Failed to refetch progress:', err);
+    }
+  }, [submission]);
+
+  return {
+    // Survey data
+    survey,
+    currentQuestion,
+    submission,
+    progress,
+
+    // State
+    loading,
+    error,
+    currentIndex,
+    isLastQuestion,
+
+    // Actions
+    startSurvey,
+    submitResponse,
+    nextQuestion,
+    previousQuestion,
+    completeAndSubmit,
+    refetchProgress,
+  };
+}

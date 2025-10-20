@@ -1,44 +1,114 @@
+# Python
 __pycache__
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 .Python
-env
-pip-log.txt
-pip-delete-this-directory.txt
-.tox
+*.egg
+*.egg-info
+dist/
+build/
+*.whl
+
+# Virtual Environments
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Poetry
+poetry.lock
+
+# Testing
+.tox/
 .coverage
 .coverage.*
-.cache
+htmlcov/
+.pytest_cache/
+.hypothesis/
 nosetests.xml
 coverage.xml
 *.cover
-*.log
-.git
-.mypy_cache
-.pytest_cache
-.hypothesis
+.cache
+mypy-report/
 
+# Linting & Type Checking
+.mypy_cache/
+.ruff_cache/
+.pylint.d/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-.vscode
 
-# Local database
+# Logs
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Database
 *.db
 *.sqlite3
 
-# Alembic
-alembic.ini
-
 # Environment files
 .env
-.env.local
-.env.development
-.env.test
-.env.production
+.env.*
+!.env.example
+
+# Git
+.git/
+.gitignore
+.gitattributes
 
 # Documentation
 README.md
 *.md
+docs/
+RESTRUCTURE*.md
+REFACTORING*.md
+POETRY*.md
+../claude_docs/QUICK_REFERENCE.md
+../claude_docs/TESTING_SUMMARY.md
 
-# Credentials
-*.json
+# Scripts
+scripts/
+run_tests.sh
+Makefile
+
+# Old structure (if keeping temporarily)
+models.py
+schemas.py
+crud.py
+survey_models.py
+survey_schemas.py
+survey_crud.py
+media_models.py
+media_schemas.py
+media_crud.py
+reporting_schemas.py
+reporting_crud.py
+settings_models.py
+settings_schemas.py
+settings_crud.py
+gcp_storage.py
+gcp_ai_analysis.py
+gemini_labeling.py
+secrets_manager.py
+crud_base.py
+dependencies.py
+database.py
+main.py
+services/
+utils/
+
+# Credentials (be careful with this!)
+*-credentials.json
+*-key.json
+*.pem
+*.key

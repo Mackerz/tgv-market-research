@@ -8,8 +8,9 @@ import sys
 # Add the backend directory to the path so we can import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database import Base
-from models import User, Post  # Import all your models here
+from app.core.database import Base
+# Import all models to register them with SQLAlchemy
+from app.models import user, survey, media, settings  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

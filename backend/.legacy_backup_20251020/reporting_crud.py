@@ -9,6 +9,9 @@ import survey_models
 import media_models
 import settings_crud
 import reporting_schemas
+from utils.query_helpers import get_approved_submissions_query, get_approved_submission_ids_subquery
+from utils.chart_utils import ChartColorPalette
+from utils.json_utils import safe_json_parse
 
 
 def categorize_age(age: Optional[int], age_ranges: List[Dict]) -> Optional[str]:
@@ -33,14 +36,8 @@ def categorize_age(age: Optional[int], age_ranges: List[Dict]) -> Optional[str]:
 def get_demographic_data(db: Session, survey_id: int, age_ranges: List[Dict]) -> reporting_schemas.DemographicData:
     """Get demographic breakdown for completed and approved submissions"""
 
-    # Get completed and approved submissions
-    submissions = db.query(survey_models.Submission).filter(
-        and_(
-            survey_models.Submission.survey_id == survey_id,
-            survey_models.Submission.is_completed == True,
-            survey_models.Submission.is_approved == True
-        )
-    ).all()
+    # Get completed and approved submissions using reusable query helper
+    submissions = get_approved_submissions_query(db, survey_id).all()
 
     # Age range analysis
     age_counts = defaultdict(int)
@@ -60,32 +57,21 @@ def get_demographic_data(db: Session, survey_id: int, age_ranges: List[Dict]) ->
     # Gender analysis
     gender_counts = Counter(submission.gender for submission in submissions)
 
-    # Define colors for charts
-    age_colors = [
-        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-        '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
-    ]
-    region_colors = [
-        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-        '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
-    ]
-    gender_colors = ['#FF6384', '#36A2EB', '#FFCE56']
-
     return reporting_schemas.DemographicData(
         age_ranges=reporting_schemas.ChartData(
             labels=list(age_counts.keys()),
             data=list(age_counts.values()),
-            backgroundColor=age_colors[:len(age_counts)]
+            backgroundColor=ChartColorPalette.get_colors(len(age_counts))
         ),
         regions=reporting_schemas.ChartData(
             labels=list(region_counts.keys()),
             data=list(region_counts.values()),
-            backgroundColor=region_colors[:len(region_counts)]
+            backgroundColor=ChartColorPalette.get_colors(len(region_counts))
         ),
         genders=reporting_schemas.ChartData(
             labels=list(gender_counts.keys()),
             data=list(gender_counts.values()),
-            backgroundColor=gender_colors[:len(gender_counts)]
+            backgroundColor=ChartColorPalette.get_gender_colors(len(gender_counts))
         )
     )
 
@@ -100,14 +86,8 @@ def get_question_response_data(
 
     response_data = []
 
-    # Get all completed and approved submission IDs
-    approved_submission_ids = db.query(survey_models.Submission.id).filter(
-        and_(
-            survey_models.Submission.survey_id == survey_id,
-            survey_models.Submission.is_completed == True,
-            survey_models.Submission.is_approved == True
-        )
-    ).subquery()
+    # Get all completed and approved submission IDs using reusable helper
+    approved_submission_ids = get_approved_submission_ids_subquery(db, survey_id)
 
     for question in survey_flow:
         question_id = question.get('id')
@@ -155,16 +135,10 @@ def get_question_response_data(
 
         # Create chart data if we have responses
         if answer_counts:
-            # Generate colors
-            colors = [
-                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
-            ]
-
             chart_data = reporting_schemas.ChartData(
                 labels=list(answer_counts.keys()),
                 data=list(answer_counts.values()),
-                backgroundColor=colors[:len(answer_counts)]
+                backgroundColor=ChartColorPalette.get_colors(len(answer_counts))
             )
 
             response_data.append(reporting_schemas.QuestionResponseData(
@@ -181,14 +155,8 @@ def get_question_response_data(
 def get_media_analysis_data(db: Session, survey_id: int) -> reporting_schemas.MediaData:
     """Get media analysis data for photos and videos"""
 
-    # Get all completed and approved submission IDs
-    approved_submission_ids = db.query(survey_models.Submission.id).filter(
-        and_(
-            survey_models.Submission.survey_id == survey_id,
-            survey_models.Submission.is_completed == True,
-            survey_models.Submission.is_approved == True
-        )
-    ).subquery()
+    # Get all completed and approved submission IDs using reusable helper
+    approved_submission_ids = get_approved_submission_ids_subquery(db, survey_id)
 
     # Get photo responses with media analysis
     photo_responses = db.query(survey_models.Response, media_models.Media).join(
@@ -214,46 +182,34 @@ def get_media_analysis_data(db: Session, survey_id: int) -> reporting_schemas.Me
         )
     ).all()
 
-    # Process photo reporting labels
+    # Process photo reporting labels using safe JSON parser
     photo_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
     for response, media in photo_responses:
-        try:
-            labels = json.loads(media.reporting_labels) if media.reporting_labels else []
-            for label in labels:
-                photo_label_counts[label].add(response.submission_id)
-        except json.JSONDecodeError:
-            continue
+        labels = safe_json_parse(media.reporting_labels, [])
+        for label in labels:
+            photo_label_counts[label].add(response.submission_id)
 
-    # Process video reporting labels
+    # Process video reporting labels using safe JSON parser
     video_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
     for response, media in video_responses:
-        try:
-            labels = json.loads(media.reporting_labels) if media.reporting_labels else []
-            for label in labels:
-                video_label_counts[label].add(response.submission_id)
-        except json.JSONDecodeError:
-            continue
+        labels = safe_json_parse(media.reporting_labels, [])
+        for label in labels:
+            video_label_counts[label].add(response.submission_id)
 
     # Convert sets to counts
     photo_final_counts = {label: len(submission_ids) for label, submission_ids in photo_label_counts.items()}
     video_final_counts = {label: len(submission_ids) for label, submission_ids in video_label_counts.items()}
 
-    # Define colors for media charts
-    colors = [
-        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-        '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
-    ]
-
     return reporting_schemas.MediaData(
         photos=reporting_schemas.ChartData(
             labels=list(photo_final_counts.keys()),
             data=list(photo_final_counts.values()),
-            backgroundColor=colors[:len(photo_final_counts)]
+            backgroundColor=ChartColorPalette.get_colors(len(photo_final_counts))
         ),
         videos=reporting_schemas.ChartData(
             labels=list(video_final_counts.keys()),
             data=list(video_final_counts.values()),
-            backgroundColor=colors[:len(video_final_counts)]
+            backgroundColor=ChartColorPalette.get_colors(len(video_final_counts))
         )
     )
 

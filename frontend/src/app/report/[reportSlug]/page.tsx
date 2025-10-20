@@ -13,7 +13,7 @@ interface Submission {
   gender: string
   age: number
   submitted_at: string
-  is_approved: boolean
+  is_approved: boolean | null
   is_completed: boolean
 }
 
@@ -22,6 +22,7 @@ interface SubmissionsResponse {
   total_count: number
   approved_count: number
   rejected_count: number
+  pending_count: number
   survey: {
     id: number
     name: string
@@ -129,7 +130,7 @@ interface ReportingData {
 }
 
 type TabType = 'submissions' | 'reporting' | 'media-gallery' | 'settings'
-type ApprovalFilter = 'all' | 'approved' | 'rejected'
+type ApprovalFilter = 'all' | 'approved' | 'rejected' | 'pending'
 type SortBy = 'submitted_at' | 'email' | 'age' | 'region'
 
 export default function ReportPage() {
@@ -162,10 +163,20 @@ export default function ReportPage() {
   const fetchSubmissions = async () => {
     try {
       setLoading(true)
-      const approved = approvalFilter === 'all' ? undefined : approvalFilter === 'approved'
+      let approved: boolean | undefined | null = undefined
+
+      if (approvalFilter === 'approved') {
+        approved = true
+      } else if (approvalFilter === 'rejected') {
+        approved = false
+      } else if (approvalFilter === 'pending') {
+        approved = null
+      }
 
       const params = new URLSearchParams()
-      if (approved !== undefined) params.append('approved', approved.toString())
+      if (approved !== undefined) {
+        params.append('approved', approved === null ? 'null' : approved.toString())
+      }
       params.append('sort_by', sortBy)
       params.append('sort_order', sortOrder)
 
@@ -488,7 +499,9 @@ export default function ReportPage() {
   }
 
   const getStatusBadge = (submission: Submission) => {
-    if (submission.is_approved) {
+    if (submission.is_approved === null) {
+      return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending</span>
+    } else if (submission.is_approved === true) {
       return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Approved</span>
     } else {
       return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Rejected</span>
@@ -525,6 +538,9 @@ export default function ReportPage() {
             <div className="flex space-x-4 text-sm">
               <div className="bg-blue-100 px-3 py-1 rounded">
                 Total: {submissions?.total_count || 0}
+              </div>
+              <div className="bg-yellow-100 px-3 py-1 rounded">
+                Pending: {submissions?.pending_count || 0}
               </div>
               <div className="bg-green-100 px-3 py-1 rounded">
                 Approved: {submissions?.approved_count || 0}
@@ -578,6 +594,7 @@ export default function ReportPage() {
                       className="px-3 py-2 border rounded-md"
                     >
                       <option value="all">All Submissions</option>
+                      <option value="pending">Pending</option>
                       <option value="approved">Approved</option>
                       <option value="rejected">Rejected</option>
                     </select>

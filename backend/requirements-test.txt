@@ -1,0 +1,28 @@
+# Testing dependencies for backend
+
+# Core testing framework
+pytest>=7.4.0
+pytest-cov>=4.1.0  # Coverage reporting
+pytest-xdist>=3.3.0  # Parallel test execution
+pytest-mock>=3.11.0  # Mocking utilities
+
+# Additional testing utilities
+pytest-timeout>=2.1.0  # Test timeout handling
+pytest-asyncio>=0.21.0  # Async test support
+pytest-env>=0.8.2  # Environment variable management
+
+# Code quality
+pytest-flake8>=1.1.1  # Linting during tests
+pytest-mypy>=0.10.3  # Type checking during tests
+
+# Test data and fixtures
+faker>=19.0.0  # Fake data generation
+factory-boy>=3.3.0  # Test factory patterns
+
+# Already in main requirements but needed for tests
+sqlalchemy>=2.0.0
+pydantic>=2.0.0
+fastapi>=0.100.0
+
+# Optional but recommended
+hypothesis>=6.82.0  # Property-based testing

@@ -3,6 +3,7 @@ from typing import Optional, List
 import json
 import media_models
 import media_schemas
+from utils.json_utils import safe_json_parse, safe_json_dumps
 
 def create_media_analysis(db: Session, media: media_schemas.MediaCreate) -> media_models.Media:
     """Create a new media analysis record"""
@@ -37,9 +38,9 @@ def create_or_update_media_analysis(
 ) -> media_models.Media:
     """Create or update media analysis for a response"""
 
-    # Convert lists to JSON strings if provided
-    brands_json = json.dumps(brands) if brands else None
-    labels_json = json.dumps(reporting_labels) if reporting_labels else None
+    # Convert lists to JSON strings if provided using safe utility
+    brands_json = safe_json_dumps(brands)
+    labels_json = safe_json_dumps(reporting_labels)
 
     # Check if media analysis already exists
     existing_media = get_media_by_response_id(db, response_id)
@@ -133,21 +134,9 @@ def get_media_gallery(db: Session, survey_slug: str, labels: Optional[List[str]]
     video_count = 0
 
     for media, photo_url, video_url, question, responded_at, submission_id, email, region, gender, age in results:
-        # Parse JSON fields safely
-        brands_list = []
-        labels_list = []
-
-        if media.brands_detected:
-            try:
-                brands_list = json.loads(media.brands_detected)
-            except:
-                pass
-
-        if media.reporting_labels:
-            try:
-                labels_list = json.loads(media.reporting_labels)
-            except:
-                pass
+        # Parse JSON fields safely using utility
+        brands_list = safe_json_parse(media.brands_detected, [])
+        labels_list = safe_json_parse(media.reporting_labels, [])
 
         # Create items for both photo and video if they exist
         if photo_url:

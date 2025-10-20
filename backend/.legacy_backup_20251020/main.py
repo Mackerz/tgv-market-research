@@ -62,67 +62,15 @@ logger.info(f"🗂️ GCP credentials path: {os.getenv('GOOGLE_APPLICATION_CREDE
 def analyze_media_content(response_id: int, media_type: str, media_url: str):
     """Background task to analyze photo or video content using GCP AI services"""
     from database import get_db
-
-    logger.info(f"🔄 Starting {media_type} analysis for response {response_id}")
-    logger.info(f"📄 Media URL: {media_url}")
+    from services.media_analysis_service import create_media_analysis_service
 
     # Get database session
     db = next(get_db())
 
     try:
-        if media_type == "photo":
-            logger.info(f"📷 Analyzing photo for response {response_id}...")
-            # Analyze photo
-            description = analyze_photo_response(media_url)
-            logger.info(f"📷 Photo analysis result: {description[:100] if description else 'None'}...")
-
-            if description:
-                # Generate reporting labels using Gemini
-                logger.info(f"🤖 Generating reporting labels for photo...")
-                reporting_labels = generate_labels_for_media(description)
-                logger.info(f"🏷️ Generated {len(reporting_labels) if reporting_labels else 0} labels")
-
-                logger.info(f"💾 Saving photo analysis to database...")
-                media_record = media_crud.create_or_update_media_analysis(
-                    db=db,
-                    response_id=response_id,
-                    description=description,
-                    reporting_labels=reporting_labels
-                )
-                logger.info(f"✅ Photo analysis saved with ID: {media_record.id}")
-            else:
-                logger.warning(f"⚠️ No description generated for photo response {response_id}")
-
-        elif media_type == "video":
-            logger.info(f"🎥 Analyzing video for response {response_id}...")
-            # Analyze video
-            description, transcript, brands = analyze_video_response(media_url)
-            logger.info(f"🎥 Video analysis results:")
-            logger.info(f"   📝 Description: {description[:100] if description else 'None'}...")
-            logger.info(f"   🗣️ Transcript: {transcript[:100] if transcript else 'None'}...")
-            logger.info(f"   🏷️ Brands: {brands if brands else 'None'}")
-
-            if description or transcript or brands:
-                # Generate reporting labels using Gemini
-                logger.info(f"🤖 Generating reporting labels for video...")
-                reporting_labels = generate_labels_for_media(description, transcript, brands)
-                logger.info(f"🏷️ Generated {len(reporting_labels) if reporting_labels else 0} labels")
-
-                logger.info(f"💾 Saving video analysis to database...")
-                media_record = media_crud.create_or_update_media_analysis(
-                    db=db,
-                    response_id=response_id,
-                    description=description,
-                    transcript=transcript,
-                    brands=brands,
-                    reporting_labels=reporting_labels
-                )
-                logger.info(f"✅ Video analysis saved with ID: {media_record.id}")
-            else:
-                logger.warning(f"⚠️ No analysis results generated for video response {response_id}")
-
-        logger.info(f"🎉 Completed {media_type} analysis for response {response_id}")
-
+        # Use MediaAnalysisService for cleaner separation of concerns
+        service = create_media_analysis_service(db)
+        service.analyze_media(response_id, media_type, media_url)
     except Exception as e:
         logger.error(f"❌ Background AI analysis failed for response {response_id}: {str(e)}")
         logger.error(f"❌ Error type: {type(e).__name__}")
@@ -130,7 +78,6 @@ def analyze_media_content(response_id: int, media_type: str, media_url: str):
         logger.error(f"❌ Traceback: {traceback.format_exc()}")
     finally:
         db.close()
-        logger.info(f"🔚 Database connection closed for response {response_id}")
 
 # CORS Configuration using Secret Manager
 from secrets_manager import get_allowed_origins
@@ -555,10 +502,11 @@ def get_report_submissions(
     db: Session = Depends(get_db)
 ):
     """Get submissions for reporting with filtering and sorting"""
-    # Get survey
-    survey = survey_crud.get_survey_by_slug(db, survey_slug)
-    if not survey:
-        raise HTTPException(status_code=404, detail="Survey not found")
+    from dependencies import get_survey_or_404
+    from utils.query_helpers import get_submission_counts
+
+    # Get survey using dependency helper
+    survey = get_survey_or_404(survey_slug, db)
 
     # Build query - only include completed submissions
     query = db.query(survey_models.Submission).filter(
@@ -589,36 +537,15 @@ def get_report_submissions(
     # Apply pagination
     submissions = query.offset(skip).limit(limit).all()
 
-    # Get total count (only completed submissions)
-    total_count = db.query(survey_models.Submission).filter(
-        survey_models.Submission.survey_id == survey.id,
-        survey_models.Submission.is_completed == True
-    ).count()
-
-    approved_count = db.query(survey_models.Submission).filter(
-        survey_models.Submission.survey_id == survey.id,
-        survey_models.Submission.is_completed == True,
-        survey_models.Submission.is_approved == True
-    ).count()
-
-    rejected_count = db.query(survey_models.Submission).filter(
-        survey_models.Submission.survey_id == survey.id,
-        survey_models.Submission.is_completed == True,
-        survey_models.Submission.is_approved == False
-    ).count()
-
-    pending_count = db.query(survey_models.Submission).filter(
-        survey_models.Submission.survey_id == survey.id,
-        survey_models.Submission.is_completed == True,
-        survey_models.Submission.is_approved.is_(None)
-    ).count()
+    # Get counts using helper (eliminates duplicate query logic)
+    counts = get_submission_counts(db, survey.id)
 
     return {
         "submissions": submissions,
-        "total_count": total_count,
-        "approved_count": approved_count,
-        "rejected_count": rejected_count,
-        "pending_count": pending_count,
+        "total_count": counts['completed'],  # Only completed for reporting
+        "approved_count": counts['approved'],
+        "rejected_count": counts['rejected'],
+        "pending_count": counts['pending'],
         "survey": survey
     }
 
@@ -661,23 +588,12 @@ def get_report_submission_detail(
 
         # Get media analysis if it exists
         if response.media_analysis:
+            from utils.json_utils import safe_json_parse
+
             for media in response.media_analysis:
-                # Parse JSON strings
-                import json
-                brands_list = []
-                labels_list = []
-
-                if media.brands_detected:
-                    try:
-                        brands_list = json.loads(media.brands_detected)
-                    except:
-                        brands_list = []
-
-                if media.reporting_labels:
-                    try:
-                        labels_list = json.loads(media.reporting_labels)
-                    except:
-                        labels_list = []
+                # Parse JSON strings safely
+                brands_list = safe_json_parse(media.brands_detected, [])
+                labels_list = safe_json_parse(media.reporting_labels, [])
 
                 response_data["media_analysis"] = {
                     "id": media.id,
@@ -900,175 +816,13 @@ import io
 @app.api_route("/api/media/proxy", methods=["GET", "HEAD"])
 async def proxy_media(gcs_url: str, request: Request):
     """Proxy GCS media files for frontend consumption with video streaming support"""
+    from services.media_proxy_service import get_media_proxy_service
+
     try:
-        # Handle development mode simulated uploads
-        if gcs_url.startswith('file://simulated-upload/'):
-            # In development mode, return a placeholder image or video
-            file_path = gcs_url.replace('file://simulated-upload/', '')
-
-            # Determine content type based on file extension
-            content_type = "application/octet-stream"
-            if file_path.lower().endswith(('.jpg', '.jpeg')):
-                content_type = "image/jpeg"
-                # Return a simple SVG placeholder for images
-                placeholder_content = '''<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
-                    <rect width="400" height="300" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>
-                    <text x="200" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">📷 Simulated Photo</text>
-                    <text x="200" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#999">Development Mode</text>
-                    <text x="200" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#aaa">''' + file_path.split('/')[-1] + '''</text>
-                </svg>'''
-                return Response(
-                    content=placeholder_content,
-                    media_type="image/svg+xml",
-                    headers={
-                        "Cache-Control": "public, max-age=300",
-                        "Access-Control-Allow-Origin": "http://localhost:3000",
-                        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-                        "Access-Control-Allow-Headers": "Range, Content-Range"
-                    }
-                )
-            elif file_path.lower().endswith('.mp4'):
-                content_type = "video/mp4"
-                # For videos, return an SVG placeholder explaining it's simulated
-                placeholder_content = '''<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
-                    <rect width="600" height="400" fill="#2a2a2a" stroke="#555" stroke-width="2"/>
-                    <circle cx="300" cy="200" r="50" fill="#666" stroke="#999" stroke-width="2"/>
-                    <polygon points="285,175 285,225 325,200" fill="#fff"/>
-                    <text x="300" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#ccc">🎥 Simulated Video</text>
-                    <text x="300" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#999">Development Mode</text>
-                    <text x="300" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#777">''' + file_path.split('/')[-1] + '''</text>
-                    <text x="300" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#555">This would be a real video in production</text>
-                </svg>'''
-                return Response(
-                    content=placeholder_content,
-                    media_type="image/svg+xml",
-                    headers={
-                        "Cache-Control": "public, max-age=300",
-                        "Access-Control-Allow-Origin": "http://localhost:3000",
-                        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-                        "Access-Control-Allow-Headers": "Range, Content-Range"
-                    }
-                )
-            else:
-                return HTTPException(status_code=400, detail="Unsupported simulated file type")
-
-        # Parse the GCS URL
-        if not gcs_url.startswith('gs://'):
-            raise HTTPException(status_code=400, detail="Invalid GCS URL")
-
-        # Extract bucket and blob path
-        url_parts = gcs_url.replace('gs://', '').split('/', 1)
-        if len(url_parts) != 2:
-            raise HTTPException(status_code=400, detail="Invalid GCS URL format")
-
-        bucket_name, blob_path = url_parts
-
-        # Initialize GCS client
-        client = storage.Client()
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(blob_path)
-
-        # Check if blob exists
-        if not blob.exists():
-            raise HTTPException(status_code=404, detail="Media file not found")
-
-        # Get blob size
-        blob.reload()  # Ensure we have metadata
-        file_size = blob.size
-
-        # Determine content type based on file extension
-        content_type = "application/octet-stream"
-        if blob_path.lower().endswith(('.jpg', '.jpeg')):
-            content_type = "image/jpeg"
-        elif blob_path.lower().endswith('.png'):
-            content_type = "image/png"
-        elif blob_path.lower().endswith('.gif'):
-            content_type = "image/gif"
-        elif blob_path.lower().endswith('.mp4'):
-            content_type = "video/mp4"
-        elif blob_path.lower().endswith('.webm'):
-            content_type = "video/webm"
-        elif blob_path.lower().endswith('.mov'):
-            content_type = "video/quicktime"
-
-        # Handle HEAD requests - return headers only
-        is_head_request = request.method == "HEAD"
-
-        # Handle video streaming with range requests
-        if content_type.startswith('video/'):
-            range_header = request.headers.get('range')
-
-            if range_header and not is_head_request:
-                # Parse range header (e.g., "bytes=0-1023")
-                range_match = range_header.replace('bytes=', '').split('-')
-                start = int(range_match[0]) if range_match[0] else 0
-                end = int(range_match[1]) if range_match[1] else file_size - 1
-
-                # Ensure end doesn't exceed file size
-                end = min(end, file_size - 1)
-                content_length = end - start + 1
-
-                # Download specific byte range (end is inclusive for GCS)
-                blob_content = blob.download_as_bytes(start=start, end=end)
-
-                headers = {
-                    "Content-Range": f"bytes {start}-{end}/{file_size}",
-                    "Accept-Ranges": "bytes",
-                    "Content-Length": str(content_length),
-                    "Cache-Control": "public, max-age=3600",
-                    "Content-Type": content_type,
-                    "Access-Control-Allow-Origin": "http://localhost:3000",
-                    "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-                    "Access-Control-Allow-Headers": "Range, Content-Range"
-                }
-
-                return Response(
-                    content=blob_content,
-                    status_code=206,  # Partial Content
-                    headers=headers,
-                    media_type=content_type
-                )
-            else:
-                # No range request or HEAD request
-                headers = {
-                    "Accept-Ranges": "bytes",
-                    "Content-Length": str(file_size),
-                    "Cache-Control": "public, max-age=3600",
-                    "Content-Type": content_type,
-                    "Access-Control-Allow-Origin": "http://localhost:3000",
-                    "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-                    "Access-Control-Allow-Headers": "Range, Content-Range"
-                }
-
-                if is_head_request:
-                    # HEAD request - headers only
-                    return Response(
-                        content="",
-                        headers=headers,
-                        media_type=content_type
-                    )
-                else:
-                    # GET request - send entire file
-                    blob_content = blob.download_as_bytes()
-                    return Response(
-                        content=blob_content,
-                        headers=headers,
-                        media_type=content_type
-                    )
-        else:
-            # For images and other non-video content, use regular streaming
-            blob_content = blob.download_as_bytes()
-
-            return StreamingResponse(
-                io.BytesIO(blob_content),
-                media_type=content_type,
-                headers={
-                    "Cache-Control": "public, max-age=3600",
-                    "Content-Disposition": f"inline; filename={blob_path.split('/')[-1]}",
-                    "Content-Length": str(file_size)
-                }
-            )
-
+        service = get_media_proxy_service()
+        return service.proxy_media(gcs_url, request)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Media proxy error: {str(e)}")
         import traceback
