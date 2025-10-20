@@ -89,7 +89,7 @@ def create_submission(db: Session, submission: survey_schemas.SubmissionCreate) 
         region=submission.region,
         date_of_birth=submission.date_of_birth,
         gender=submission.gender,
-        is_approved=False,
+        is_approved=None,  # Starts as pending (to be approved)
         is_completed=False
     )
     db.add(db_submission)

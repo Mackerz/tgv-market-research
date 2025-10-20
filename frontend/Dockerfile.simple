@@ -1,0 +1,20 @@
+# Use a simple approach with Google's base images
+FROM gcr.io/distroless/nodejs18-debian11 AS runner
+WORKDIR /app
+
+# Copy the entire frontend directory for now
+COPY . .
+
+# Install dependencies and build
+USER root
+RUN apt-get update && apt-get install -y npm
+RUN npm install
+RUN npm run build
+
+ENV NODE_ENV production
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

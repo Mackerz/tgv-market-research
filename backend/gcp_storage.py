@@ -22,9 +22,9 @@ class GCPStorageManager:
             return
 
         # Use secrets manager for configuration
-        bucket_name = get_gcs_bucket_name()
-        self.photo_bucket_name = bucket_name or os.getenv("GCP_STORAGE_BUCKET_PHOTOS", "survey-photos-bucket")
-        self.video_bucket_name = bucket_name or os.getenv("GCP_STORAGE_BUCKET_VIDEOS", "survey-videos-bucket")
+        # Try to get individual bucket names from environment first, then fall back to generic bucket name
+        self.photo_bucket_name = os.getenv("GCP_STORAGE_BUCKET_PHOTOS") or get_gcs_bucket_name() or "survey-photos-bucket"
+        self.video_bucket_name = os.getenv("GCP_STORAGE_BUCKET_VIDEOS") or get_gcs_bucket_name() or "survey-videos-bucket"
         self.project_id = get_gcp_project_id() or os.getenv("GCP_PROJECT_ID", "your-project-id")
 
         try:
@@ -35,6 +35,8 @@ class GCPStorageManager:
                 self.client = storage.Client.from_service_account_json(credentials_path)
             else:
                 # Will use default credentials (useful in GCP environment)
+                if credentials_path:
+                    print(f"⚠️  Service account key not found at {credentials_path}, using default credentials")
                 print(f"🔑 Using default credentials for project: {self.project_id}")
                 self.client = storage.Client(project=self.project_id)
 

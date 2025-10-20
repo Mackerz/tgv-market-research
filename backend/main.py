@@ -245,10 +245,57 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
 def create_survey(survey: survey_schemas.SurveyCreate, db: Session = Depends(get_db)):
     return survey_crud.create_survey(db=db, survey=survey)
 
-@app.get("/api/surveys/", response_model=List[survey_schemas.Survey])
-def read_surveys(skip: int = 0, limit: int = 100, active_only: bool = True, db: Session = Depends(get_db)):
-    surveys = survey_crud.get_surveys(db, skip=skip, limit=limit, active_only=active_only)
-    return surveys
+@app.get("/api/surveys/")
+def read_surveys(
+    skip: int = 0,
+    limit: int = 100,
+    active_only: bool = True,
+    search: Optional[str] = None,
+    client: Optional[str] = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    db: Session = Depends(get_db)
+):
+    """Get all surveys with optional search, filtering, and sorting"""
+    query = db.query(survey_models.Survey)
+
+    # Filter by active status
+    if active_only:
+        query = query.filter(survey_models.Survey.is_active == True)
+
+    # Search by survey name
+    if search:
+        query = query.filter(survey_models.Survey.name.ilike(f"%{search}%"))
+
+    # Filter by client
+    if client:
+        query = query.filter(survey_models.Survey.client.ilike(f"%{client}%"))
+
+    # Sorting
+    if sort_by == "created_at":
+        order_column = survey_models.Survey.created_at
+    elif sort_by == "name":
+        order_column = survey_models.Survey.name
+    elif sort_by == "client":
+        order_column = survey_models.Survey.client
+    else:
+        order_column = survey_models.Survey.created_at
+
+    if sort_order == "desc":
+        query = query.order_by(desc(order_column))
+    else:
+        query = query.order_by(order_column)
+
+    # Get total count before pagination
+    total_count = query.count()
+
+    # Paginate
+    surveys = query.offset(skip).limit(limit).all()
+
+    return {
+        "surveys": surveys,
+        "total_count": total_count
+    }
 
 @app.get("/api/surveys/{survey_id}", response_model=survey_schemas.SurveyWithSubmissions)
 def read_survey(survey_id: int, db: Session = Depends(get_db)):
@@ -500,7 +547,7 @@ def get_survey_label_analysis(survey_id: int, db: Session = Depends(get_db)):
 @app.get("/api/reports/{survey_slug}/submissions")
 def get_report_submissions(
     survey_slug: str,
-    approved: Optional[bool] = None,
+    approved: Optional[str] = None,
     sort_by: str = "submitted_at",
     sort_order: str = "desc",
     skip: int = 0,
@@ -520,8 +567,14 @@ def get_report_submissions(
     )
 
     # Apply approved filter
+    # approved can be: None (all), "true" (approved), "false" (rejected), "null" (pending)
     if approved is not None:
-        query = query.filter(survey_models.Submission.is_approved == approved)
+        if approved.lower() == "null":
+            query = query.filter(survey_models.Submission.is_approved.is_(None))
+        elif approved.lower() == "true":
+            query = query.filter(survey_models.Submission.is_approved == True)
+        elif approved.lower() == "false":
+            query = query.filter(survey_models.Submission.is_approved == False)
 
     # Apply sorting
     sort_column = getattr(survey_models.Submission, sort_by, None)
@@ -548,11 +601,24 @@ def get_report_submissions(
         survey_models.Submission.is_approved == True
     ).count()
 
+    rejected_count = db.query(survey_models.Submission).filter(
+        survey_models.Submission.survey_id == survey.id,
+        survey_models.Submission.is_completed == True,
+        survey_models.Submission.is_approved == False
+    ).count()
+
+    pending_count = db.query(survey_models.Submission).filter(
+        survey_models.Submission.survey_id == survey.id,
+        survey_models.Submission.is_completed == True,
+        survey_models.Submission.is_approved.is_(None)
+    ).count()
+
     return {
         "submissions": submissions,
         "total_count": total_count,
         "approved_count": approved_count,
-        "rejected_count": total_count - approved_count,
+        "rejected_count": rejected_count,
+        "pending_count": pending_count,
         "survey": survey
     }
 

@@ -13,6 +13,7 @@ class Survey(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     survey_slug = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
+    client = Column(String, nullable=True)  # Client name/organization
     survey_flow = Column(JSON, nullable=False)  # JSON structure defining questions and flow
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -37,7 +38,7 @@ class Submission(Base):
 
     # Submission metadata
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
-    is_approved = Column(Boolean, default=False)
+    is_approved = Column(Boolean, nullable=True, default=None)  # None=pending, True=approved, False=rejected
     is_completed = Column(Boolean, default=False)
     age = Column(Integer, nullable=True)  # Calculated age at submission time
 

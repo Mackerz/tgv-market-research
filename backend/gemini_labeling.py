@@ -16,22 +16,40 @@ class GeminiLabelGenerator:
             return
 
         try:
-            # Configure Gemini with GCP credentials (same as your other GCP services)
-            credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            if credentials_path:
-                # Use the same service account credentials as GCP Vision/Video
-                import google.auth
-                from google.oauth2 import service_account
+            # Try to configure Gemini with API key first, then fall back to GCP credentials
+            # Check environment variable first (set by Cloud Run from secrets)
+            api_key = os.getenv("GEMINI_API_KEY")
 
-                credentials = service_account.Credentials.from_service_account_file(credentials_path)
-                genai.configure(credentials=credentials)
+            # If not in env, try secrets manager
+            if not api_key:
+                try:
+                    from secrets_manager import get_gemini_api_key
+                    api_key = get_gemini_api_key()
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not retrieve from secrets manager: {e}")
+
+            if api_key:
+                genai.configure(api_key=api_key)
+                logger.info("✅ Gemini configured with API key")
             else:
-                # Use default GCP credentials (Application Default Credentials)
-                genai.configure()
+                # Configure Gemini with GCP credentials (same as your other GCP services)
+                credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+                if credentials_path and os.path.exists(credentials_path):
+                    # Use the same service account credentials as GCP Vision/Video
+                    import google.auth
+                    from google.oauth2 import service_account
 
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+                    credentials = service_account.Credentials.from_service_account_file(credentials_path)
+                    genai.configure(credentials=credentials)
+                    logger.info("✅ Gemini configured with service account credentials")
+                else:
+                    # Use default GCP credentials (Application Default Credentials)
+                    genai.configure()
+                    logger.info("✅ Gemini configured with default GCP credentials")
 
-            logger.info("✅ Gemini AI services initialized successfully with GCP credentials")
+            self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
+
+            logger.info("✅ Gemini AI services initialized successfully")
 
         except Exception as e:
             logger.error(f"❌ Gemini initialization failed: {e}")

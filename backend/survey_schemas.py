@@ -51,6 +51,7 @@ class SurveyQuestion(BaseModel):
 class SurveyBase(BaseModel):
     survey_slug: str
     name: str
+    client: Optional[str] = None
     survey_flow: List[SurveyQuestion]
     is_active: bool = True
 
@@ -66,6 +67,7 @@ class SurveyCreate(SurveyBase):
 
 class SurveyUpdate(BaseModel):
     name: Optional[str] = None
+    client: Optional[str] = None
     survey_flow: Optional[List[SurveyQuestion]] = None
     is_active: Optional[bool] = None
 
@@ -116,7 +118,7 @@ class SubmissionUpdate(BaseModel):
 class Submission(SubmissionBase):
     id: int
     submitted_at: datetime
-    is_approved: bool
+    is_approved: Optional[bool] = None  # None=pending, True=approved, False=rejected
     is_completed: bool
     age: Optional[int] = None
     calculated_age: Optional[int] = None
