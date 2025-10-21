@@ -41,13 +41,21 @@ yarn-error.log*
 frontend/next-env.d.ts
 
 
-./frontend/.next
-./frontend/node_modules/*
-./frontend/node_modules
-./tmg-market-research-fd13d009581b.json
-./backend/tmg-market-research-fd13d009581b.json
-./backend/__pycache__
-./backend/alembic/__pycache__
-./backend/alembic/versions/__pycache__
+# Frontend build artifacts
 /frontend/.next/
 /frontend/node_modules/
+
+# Backend artifacts
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+
+# GCP credentials - NEVER COMMIT THESE
+**/tmg-market-research-*.json
+**/*-service-account-*.json
+**/service-account-key*.json
+*.json
+!package*.json
+!tsconfig*.json
+!**/alembic.ini
