@@ -15,6 +15,7 @@ from app.crud import survey as survey_crud
 from app.integrations.gcp.gemini import get_survey_label_summary, summarize_survey_labels
 from app.dependencies import get_response_or_404
 from app.core.rate_limits import get_rate_limit
+from app.core.auth import RequireAPIKey
 
 logger = logging.getLogger(__name__)
 
@@ -85,10 +86,18 @@ def get_survey_media_summary(survey_id: int, db: Session = Depends(get_db)):
 
 @router.post("/responses/{response_id}/trigger-analysis")
 @limiter.limit(get_rate_limit("ai_analysis"))
-def trigger_media_analysis(request: Request, response_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def trigger_media_analysis(
+    request: Request,
+    response_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
     """
-    Manually trigger AI analysis for a specific response - useful for testing
-    (Rate limit: 5/minute - AI analysis is EXPENSIVE!)
+    Manually trigger AI analysis for a specific response (ADMIN ONLY)
+
+    Rate limit: 5/minute - AI analysis is EXPENSIVE!
+    Requires: X-API-Key header
     """
 
     logger.info(f"🔧 Manual trigger requested for response {response_id}")

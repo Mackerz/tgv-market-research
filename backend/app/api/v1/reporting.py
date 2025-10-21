@@ -14,6 +14,7 @@ from app.crud import reporting as reporting_crud
 from app.crud import media as media_crud
 from app.dependencies import get_survey_or_404, get_submission_for_survey_or_404
 from app.utils.queries import get_submission_counts
+from app.core.auth import RequireAPIKey
 
 router = APIRouter(prefix="/api/reports", tags=["reporting"])
 
@@ -139,9 +140,10 @@ def get_report_submission_detail(
 def approve_submission(
     survey_slug: str,
     submission_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
 ):
-    """Approve a submission"""
+    """Approve a submission (ADMIN ONLY - Requires: X-API-Key header)"""
     # Get survey and submission using dependency helper
     survey, submission = get_submission_for_survey_or_404(survey_slug, submission_id, db)
 
@@ -159,9 +161,10 @@ def approve_submission(
 def reject_submission(
     survey_slug: str,
     submission_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
 ):
-    """Reject a submission"""
+    """Reject a submission (ADMIN ONLY - Requires: X-API-Key header)"""
     # Get survey and submission using dependency helper
     survey, submission = get_submission_for_survey_or_404(survey_slug, submission_id, db)
 

@@ -13,6 +13,7 @@ from app.crud import survey as survey_crud
 from app.integrations.gcp.storage import upload_survey_photo, upload_survey_video
 from app.dependencies import get_survey_or_404, get_survey_by_id_or_404
 from app.core.rate_limits import get_rate_limit
+from app.core.auth import RequireAPIKey
 
 router = APIRouter(prefix="/api", tags=["surveys"])
 limiter = Limiter(key_func=get_remote_address)
@@ -24,8 +25,18 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.post("/surveys/", response_model=survey_schemas.Survey)
 @limiter.limit(get_rate_limit("survey_create"))
-def create_survey(request: Request, survey: survey_schemas.SurveyCreate, db: Session = Depends(get_db)):
-    """Create a new survey (Rate limit: 10/minute to prevent spam)"""
+def create_survey(
+    request: Request,
+    survey: survey_schemas.SurveyCreate,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
+    """
+    Create a new survey (ADMIN ONLY)
+
+    Rate limit: 10/minute to prevent spam
+    Requires: X-API-Key header
+    """
     try:
         return survey_crud.create_survey(db=db, survey_data=survey)
     except Exception as e:
@@ -103,8 +114,13 @@ def read_survey_by_slug(survey_slug: str, db: Session = Depends(get_db)):
 
 
 @router.put("/surveys/{survey_id}", response_model=survey_schemas.Survey)
-def update_survey(survey_id: int, survey: survey_schemas.SurveyUpdate, db: Session = Depends(get_db)):
-    """Update a survey"""
+def update_survey(
+    survey_id: int,
+    survey: survey_schemas.SurveyUpdate,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
+    """Update a survey (ADMIN ONLY - Requires: X-API-Key header)"""
     db_survey = survey_crud.update_survey(db=db, survey_id=survey_id, survey_data=survey)
     if db_survey is None:
         raise HTTPException(status_code=404, detail="Survey not found")
@@ -112,8 +128,12 @@ def update_survey(survey_id: int, survey: survey_schemas.SurveyUpdate, db: Sessi
 
 
 @router.delete("/surveys/{survey_id}")
-def delete_survey(survey_id: int, db: Session = Depends(get_db)):
-    """Delete a survey"""
+def delete_survey(
+    survey_id: int,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
+    """Delete a survey (ADMIN ONLY - Requires: X-API-Key header)"""
     success = survey_crud.delete_survey(db=db, survey_id=survey_id)
     if not success:
         raise HTTPException(status_code=404, detail="Survey not found")
