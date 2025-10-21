@@ -1,7 +1,9 @@
 """Survey Submission and Response API endpoints"""
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from typing import List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 import logging
 
 from app.core.database import get_db
@@ -13,10 +15,12 @@ from app.dependencies import (
     validate_survey_active,
     validate_submission_not_completed
 )
+from app.core.rate_limits import get_rate_limit
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["submissions", "responses"])
+limiter = Limiter(key_func=get_remote_address)
 
 # Import centralized background task function (removes duplication)
 from app.services.media_analysis import analyze_media_content_background
@@ -27,8 +31,9 @@ from app.services.media_analysis import analyze_media_content_background
 # =============================================================================
 
 @router.post("/surveys/{survey_slug}/submit", response_model=survey_schemas.Submission)
-def create_submission(survey_slug: str, submission_data: survey_schemas.SubmissionPersonalInfo, db: Session = Depends(get_db)):
-    """Create a new submission for a survey"""
+@limiter.limit(get_rate_limit("submission_create"))
+def create_submission(request: Request, survey_slug: str, submission_data: survey_schemas.SubmissionPersonalInfo, db: Session = Depends(get_db)):
+    """Create a new submission for a survey (Rate limit: 30/minute)"""
     # Get survey using dependency helper and validate it's active
     survey = get_survey_or_404(survey_slug, db)
     validate_survey_active(survey)
@@ -80,8 +85,9 @@ def get_submission_progress(submission_id: int, db: Session = Depends(get_db)):
 # =============================================================================
 
 @router.post("/submissions/{submission_id}/responses", response_model=survey_schemas.Response)
-def create_response(submission_id: int, response: survey_schemas.ResponseCreateRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    """Create a response for a submission"""
+@limiter.limit(get_rate_limit("response_create"))
+def create_response(request: Request, submission_id: int, response: survey_schemas.ResponseCreateRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Create a response for a submission (Rate limit: 50/minute)"""
     # Verify submission exists and is not completed using dependency helpers
     submission = get_submission_or_404(submission_id, db)
     validate_submission_not_completed(submission)

@@ -1,8 +1,10 @@
 """Survey API endpoints"""
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import List, Optional
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.core.database import get_db
 from app.models import survey as survey_models
@@ -10,8 +12,10 @@ from app.schemas import survey as survey_schemas
 from app.crud import survey as survey_crud
 from app.integrations.gcp.storage import upload_survey_photo, upload_survey_video
 from app.dependencies import get_survey_or_404, get_survey_by_id_or_404
+from app.core.rate_limits import get_rate_limit
 
 router = APIRouter(prefix="/api", tags=["surveys"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 # =============================================================================
@@ -19,8 +23,9 @@ router = APIRouter(prefix="/api", tags=["surveys"])
 # =============================================================================
 
 @router.post("/surveys/", response_model=survey_schemas.Survey)
-def create_survey(survey: survey_schemas.SurveyCreate, db: Session = Depends(get_db)):
-    """Create a new survey"""
+@limiter.limit(get_rate_limit("survey_create"))
+def create_survey(request: Request, survey: survey_schemas.SurveyCreate, db: Session = Depends(get_db)):
+    """Create a new survey (Rate limit: 10/minute to prevent spam)"""
     try:
         return survey_crud.create_survey(db=db, survey_data=survey)
     except Exception as e:
@@ -120,8 +125,9 @@ def delete_survey(survey_id: int, db: Session = Depends(get_db)):
 # =============================================================================
 
 @router.post("/surveys/{survey_slug}/upload/photo", response_model=survey_schemas.FileUploadResponse)
-async def upload_photo(survey_slug: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """Upload a photo for a survey"""
+@limiter.limit(get_rate_limit("file_upload"))
+async def upload_photo(request: Request, survey_slug: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Upload a photo for a survey (Rate limit: 20/minute for cost control)"""
     # Verify survey exists using dependency helper
     get_survey_or_404(survey_slug, db)
 
@@ -138,8 +144,9 @@ async def upload_photo(survey_slug: str, file: UploadFile = File(...), db: Sessi
 
 
 @router.post("/surveys/{survey_slug}/upload/video", response_model=survey_schemas.FileUploadResponse)
-async def upload_video(survey_slug: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """Upload a video for a survey"""
+@limiter.limit(get_rate_limit("file_upload"))
+async def upload_video(request: Request, survey_slug: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Upload a video for a survey (Rate limit: 20/minute for cost control)"""
     # Verify survey exists using dependency helper
     get_survey_or_404(survey_slug, db)
 

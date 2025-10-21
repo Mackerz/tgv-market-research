@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from typing import List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 import logging
 import os
 
@@ -12,11 +14,12 @@ from app.crud import media as media_crud
 from app.crud import survey as survey_crud
 from app.integrations.gcp.gemini import get_survey_label_summary, summarize_survey_labels
 from app.dependencies import get_response_or_404
+from app.core.rate_limits import get_rate_limit
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["media"])
-
+limiter = Limiter(key_func=get_remote_address)
 
 # Import centralized background task function (removes duplication)
 from app.services.media_analysis import analyze_media_content_background
@@ -81,8 +84,12 @@ def get_survey_media_summary(survey_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/responses/{response_id}/trigger-analysis")
-def trigger_media_analysis(response_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    """Manually trigger AI analysis for a specific response - useful for testing"""
+@limiter.limit(get_rate_limit("ai_analysis"))
+def trigger_media_analysis(request: Request, response_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """
+    Manually trigger AI analysis for a specific response - useful for testing
+    (Rate limit: 5/minute - AI analysis is EXPENSIVE!)
+    """
 
     logger.info(f"🔧 Manual trigger requested for response {response_id}")
 

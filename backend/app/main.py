@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
 import logging
 
@@ -29,12 +32,22 @@ logger = logging.getLogger(__name__)
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+# Initialize rate limiter
+# This limits requests by IP address to prevent abuse
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+
 # Create FastAPI application
 app = FastAPI(
     title="Market Research Backend API",
     version="1.0.0",
     description="Backend API for Market Research Survey Platform"
 )
+
+# Add rate limiter to app state
+app.state.limiter = limiter
+
+# Add rate limit exceeded handler
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Log startup information
 logger.info("🚀 FastAPI Backend starting up...")
@@ -113,6 +126,7 @@ app.add_middleware(
 
 logger.info("🔒 Security headers middleware enabled")
 logger.info("🔒 CORS middleware configured with restricted methods and headers")
+logger.info("🚦 Rate limiting enabled: 100 requests/minute per IP (default)")
 
 # Include API router
 app.include_router(api_router)
