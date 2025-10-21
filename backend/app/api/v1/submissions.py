@@ -18,27 +18,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["submissions", "responses"])
 
-
-# Background task for AI analysis
-def analyze_media_content(response_id: int, media_type: str, media_url: str):
-    """Background task to analyze photo or video content using GCP AI services"""
-    from app.core.database import get_db
-    from app.services.media_analysis import create_media_analysis_service
-
-    # Get database session
-    db = next(get_db())
-
-    try:
-        # Use MediaAnalysisService for cleaner separation of concerns
-        service = create_media_analysis_service(db)
-        service.analyze_media(response_id, media_type, media_url)
-    except Exception as e:
-        logger.error(f"❌ Background AI analysis failed for response {response_id}: {str(e)}")
-        logger.error(f"❌ Error type: {type(e).__name__}")
-        import traceback
-        logger.error(f"❌ Traceback: {traceback.format_exc()}")
-    finally:
-        db.close()
+# Import centralized background task function (removes duplication)
+from app.services.media_analysis import analyze_media_content_background
 
 
 # =============================================================================
@@ -116,10 +97,10 @@ def create_response(submission_id: int, response: survey_schemas.ResponseCreateR
     # Trigger AI analysis for photo/video responses
     if response.question_type == "photo" and response.photo_url:
         logger.info(f"📷 Queueing photo analysis for response {created_response.id}: {response.photo_url}")
-        background_tasks.add_task(analyze_media_content, created_response.id, "photo", response.photo_url)
+        background_tasks.add_task(analyze_media_content_background, created_response.id, db)
     elif response.question_type == "video" and response.video_url:
         logger.info(f"🎥 Queueing video analysis for response {created_response.id}: {response.video_url}")
-        background_tasks.add_task(analyze_media_content, created_response.id, "video", response.video_url)
+        background_tasks.add_task(analyze_media_content_background, created_response.id, db)
     else:
         logger.info(f"📝 Response {created_response.id} - no media to analyze (type: {response.question_type})")
 

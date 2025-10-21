@@ -5,6 +5,7 @@ from app.utils.logging import get_context_logger
 from app.crud import media as media_crud
 from app.integrations.gcp.vision import analyze_photo_response, analyze_video_response
 from app.integrations.gcp.gemini import generate_labels_for_media
+from app.models.survey import Response
 
 logger = get_context_logger(__name__)
 
@@ -225,3 +226,62 @@ def create_media_analysis_service(db: Session) -> MediaAnalysisService:
         MediaAnalysisService instance
     """
     return MediaAnalysisService(db)
+
+
+def analyze_media_content_background(response_id: int, db_session: Session):
+    """
+    Background task to analyze media content for a response.
+
+    This function is designed to be called as a FastAPI BackgroundTask.
+    It automatically detects the media type (photo or video) and runs
+    the appropriate analysis pipeline.
+
+    Args:
+        response_id: The response ID to analyze
+        db_session: Database session
+
+    Note:
+        This replaces the duplicate analyze_media_content functions
+        that were previously in media.py and submissions.py
+    """
+    logger.info_start("background media analysis", response_id=response_id)
+
+    try:
+        # Get response from database
+        response = db_session.query(Response).filter(
+            Response.id == response_id
+        ).first()
+
+        if not response:
+            logger.error_failed(
+                "background media analysis",
+                Exception("Response not found"),
+                response_id=response_id
+            )
+            return
+
+        # Determine media type and GCS URI
+        gcs_uri = None
+        media_type = None
+
+        if response.photo_url:
+            gcs_uri = response.photo_url
+            media_type = "photo"
+        elif response.video_url:
+            gcs_uri = response.video_url
+            media_type = "video"
+        else:
+            logger.warning(
+                f"No media found for response {response_id}"
+            )
+            return
+
+        # Create service and run analysis
+        service = MediaAnalysisService(db_session)
+        service.analyze_media(response_id, media_type, gcs_uri)
+
+        logger.info_complete("background media analysis", response_id=response_id)
+
+    except Exception as e:
+        logger.error_failed("background media analysis", e, response_id=response_id)
+        raise

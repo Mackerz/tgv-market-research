@@ -18,26 +18,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["media"])
 
 
-# Background task for AI analysis
-def analyze_media_content(response_id: int, media_type: str, media_url: str):
-    """Background task to analyze photo or video content using GCP AI services"""
-    from app.core.database import get_db
-    from app.services.media_analysis import create_media_analysis_service
-
-    # Get database session
-    db = next(get_db())
-
-    try:
-        # Use MediaAnalysisService for cleaner separation of concerns
-        service = create_media_analysis_service(db)
-        service.analyze_media(response_id, media_type, media_url)
-    except Exception as e:
-        logger.error(f"❌ Background AI analysis failed for response {response_id}: {str(e)}")
-        logger.error(f"❌ Error type: {type(e).__name__}")
-        import traceback
-        logger.error(f"❌ Traceback: {traceback.format_exc()}")
-    finally:
-        db.close()
+# Import centralized background task function (removes duplication)
+from app.services.media_analysis import analyze_media_content_background
 
 
 # =============================================================================
@@ -113,13 +95,13 @@ def trigger_media_analysis(response_id: int, background_tasks: BackgroundTasks, 
     if response.question_type == "photo" and response.photo_url:
         logger.info(f"🔄 Manually triggering photo analysis for response {response_id}")
         logger.info(f"📷 Photo URL: {response.photo_url}")
-        background_tasks.add_task(analyze_media_content, response_id, "photo", response.photo_url)
+        background_tasks.add_task(analyze_media_content_background, response_id, db)
         return {"message": f"Photo analysis triggered for response {response_id}"}
 
     elif response.question_type == "video" and response.video_url:
         logger.info(f"🔄 Manually triggering video analysis for response {response_id}")
         logger.info(f"🎥 Video URL: {response.video_url}")
-        background_tasks.add_task(analyze_media_content, response_id, "video", response.video_url)
+        background_tasks.add_task(analyze_media_content_background, response_id, db)
         return {"message": f"Video analysis triggered for response {response_id}"}
 
     else:

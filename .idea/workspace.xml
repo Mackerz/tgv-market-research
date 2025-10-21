@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="Refactor">
+      <change afterPath="$PROJECT_DIR$/backend/create_sample_survey_local.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/docker-entrypoint.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/start.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CODE_REVIEW_UPDATED.md" beforeDir="false" afterPath="$PROJECT_DIR$/claude_docs/CODE_REVIEW_UPDATED.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/COMPREHENSIVE_CODE_REVIEW.md" beforeDir="false" afterPath="$PROJECT_DIR$/claude_docs/COMPREHENSIVE_CODE_REVIEW.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/crud/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/crud/survey.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/utils/charts.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/utils/charts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/api/test_surveys_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/api/test_surveys_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/test_chart_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_chart_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/test_crud_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_crud_base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/test_dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_dependencies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/test_json_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_json_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/test_logging_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_logging_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/test_query_helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_query_helpers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="FastAPI main" />
+        <option value="FastAPI test_main" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="32xn3Oe1s3FZbEtQt9sElgmCcP6" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.create_sample_survey.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/home/mackers/git_repos/llm-prompt-lib",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "ts.external.directory.path": "/home/mackers/tmg/marketResearch/frontend/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/claude_docs" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/backend/claude_docs" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.create_sample_survey">
+    <configuration name="create_sample_survey" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="fastApiProject" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/create_sample_survey.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="fastApiProject" type="Python.FastAPI">
+      <option name="file" value="$PROJECT_DIR$/main.py" />
+      <module name="fastApiProject" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.create_sample_survey" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PY-242.26775.22" />
+        <option value="bundled-python-sdk-9f73701ac511-399fe30bd8c1-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.26775.22" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="" />
+      <created>1758370891061</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1758370891061</updated>
+      <workItem from="1758370899868" duration="4055000" />
+      <workItem from="1758405137781" duration="730000" />
+      <workItem from="1758406727826" duration="67641000" />
+      <workItem from="1758788739822" duration="1897000" />
+      <workItem from="1759482901171" duration="2335000" />
+      <workItem from="1759847874343" duration="1314000" />
+      <workItem from="1760387136438" duration="32145000" />
+    </task>
+    <task id="LOCAL-00001" summary="initial system">
+      <option name="closed" value="true" />
+      <created>1758493582901</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1758493582901</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Add settings page">
+      <option name="closed" value="true" />
+      <created>1758532735225</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1758532735225</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add report page">
+      <option name="closed" value="true" />
+      <created>1758536726774</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1758536726774</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Finessing reporting page">
+      <option name="closed" value="true" />
+      <created>1758542119341</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1758542119341</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Finessing reporting page">
+      <option name="closed" value="true" />
+      <created>1758738343668</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1758738343668</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Finessing reporting page">
+      <option name="closed" value="true" />
+      <created>1758738474062</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1758738474062</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Photo &amp; Video Gallery">
+      <option name="closed" value="true" />
+      <created>1758743813740</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1758743813740</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Gather labels together to improve labelling">
+      <option name="closed" value="true" />
+      <created>1758746408990</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1758746408990</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Deploying to GCP">
+      <option name="closed" value="true" />
+      <created>1759612036077</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1759612036077</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Deploying to GCP">
+      <option name="closed" value="true" />
+      <created>1759612276375</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1759612276375</updated>
+    </task>
+    <task id="LOCAL-00011" summary="New screen for survey admin">
+      <option name="closed" value="true" />
+      <created>1760940434555</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1760940434555</updated>
+    </task>
+    <task id="LOCAL-00012" summary="New screen for survey admin">
+      <option name="closed" value="true" />
+      <created>1760940482247</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1760940482247</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Refactor">
+      <option name="closed" value="true" />
+      <created>1760999076748</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1760999076748</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="initial system" />
+    <MESSAGE value="Add settings page" />
+    <MESSAGE value="Add report page" />
+    <MESSAGE value="Finessing reporting page" />
+    <MESSAGE value="Photo &amp; Video Gallery" />
+    <MESSAGE value="Gather labels together to improve labelling" />
+    <MESSAGE value="Deploying to GCP" />
+    <MESSAGE value="New screen for survey admin" />
+    <MESSAGE value="Refactor" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/marketResearch$create_sample_survey.coverage" NAME="create_sample_survey Coverage Results" MODIFIED="1758755174421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>
