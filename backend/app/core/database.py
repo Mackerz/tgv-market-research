@@ -24,20 +24,31 @@ except Exception as e:
 # max_overflow: additional connections that can be created beyond pool_size
 # pool_recycle: recycle connections after 1 hour to prevent stale connections
 # pool_pre_ping: verify connections are alive before using them
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=10,              # Keep 10 connections in pool
-    max_overflow=20,           # Allow up to 30 total connections (10 + 20)
-    pool_recycle=3600,         # Recycle connections after 1 hour
-    pool_pre_ping=True,        # Test connection health before use
-    echo=False,                # Set to True for SQL debugging
-)
+
+# Only apply pooling parameters for PostgreSQL (not SQLite in tests)
+if DATABASE_URL.startswith("sqlite"):
+    # SQLite doesn't support pool_size/max_overflow parameters
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        echo=False,
+    )
+    logger.info("🔧 Database engine configured for SQLite (testing mode)")
+else:
+    # PostgreSQL with connection pooling
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=10,              # Keep 10 connections in pool
+        max_overflow=20,           # Allow up to 30 total connections (10 + 20)
+        pool_recycle=3600,         # Recycle connections after 1 hour
+        pool_pre_ping=True,        # Test connection health before use
+        echo=False,                # Set to True for SQL debugging
+    )
+    logger.info(f"🔧 Database engine configured with connection pooling:")
+    logger.info(f"   - Pool size: 10, Max overflow: 20")
+    logger.info(f"   - Pool recycle: 3600s, Pre-ping: enabled")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-logger.info(f"🔧 Database engine configured with connection pooling:")
-logger.info(f"   - Pool size: 10, Max overflow: 20")
-logger.info(f"   - Pool recycle: 3600s, Pre-ping: enabled")
 
 Base = declarative_base()
 
