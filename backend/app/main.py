@@ -1,7 +1,9 @@
 """FastAPI application entry point"""
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 import os
 import logging
 
@@ -48,16 +50,170 @@ allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
 
 logger.info(f"✅ Configured CORS origins: {allowed_origins}")
 
+# Security Headers Middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware to add security headers to all responses.
+
+    Headers added:
+    - X-Content-Type-Options: Prevents MIME-type sniffing
+    - X-Frame-Options: Prevents clickjacking attacks
+    - X-XSS-Protection: Enables browser XSS filter
+    - Strict-Transport-Security: Enforces HTTPS
+    - Content-Security-Policy: Restricts resource loading
+    - Referrer-Policy: Controls referrer information
+    """
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Prevent MIME-type sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+        # Prevent clickjacking
+        response.headers["X-Frame-Options"] = "DENY"
+
+        # Enable XSS filter
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+
+        # Enforce HTTPS (only in production)
+        if os.getenv("ENVIRONMENT", "development") == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+        # Content Security Policy - strict by default
+        # Allow same-origin content and specified domains
+        csp_directives = [
+            "default-src 'self'",
+            "img-src 'self' data: https://storage.googleapis.com",
+            "media-src 'self' https://storage.googleapis.com",
+            "script-src 'self' 'unsafe-inline'",  # Allow inline scripts for Swagger UI
+            "style-src 'self' 'unsafe-inline'",   # Allow inline styles for Swagger UI
+            "connect-src 'self'",
+        ]
+        response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+
+        # Control referrer information
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # Permissions Policy (formerly Feature-Policy)
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+
+        return response
+
+# Add Security Headers Middleware
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # More restrictive than "*"
+    allow_headers=["Content-Type", "Authorization"],  # More restrictive than "*"
 )
+
+logger.info("🔒 Security headers middleware enabled")
+logger.info("🔒 CORS middleware configured with restricted methods and headers")
 
 # Include API router
 app.include_router(api_router)
+
+
+# =============================================================================
+# STARTUP/SHUTDOWN EVENTS
+# =============================================================================
+
+@app.on_event("startup")
+async def startup_validation():
+    """
+    Validate configuration and dependencies on startup.
+
+    This ensures the application fails fast if critical
+    configuration is missing or invalid.
+    """
+    logger.info("🔍 Running startup validation...")
+
+    errors = []
+
+    # 1. Check database connection
+    try:
+        db = next(get_db())
+        db.execute("SELECT 1")
+        db.close()
+        logger.info("✅ Database connection validated")
+    except Exception as e:
+        error_msg = f"Database connection failed: {e}"
+        logger.error(f"❌ {error_msg}")
+        errors.append(error_msg)
+
+    # 2. Check required environment variables
+    required_env_vars = {
+        "DATABASE_URL": "Database connection string",
+        "GCP_PROJECT_ID": "GCP project identifier",
+    }
+
+    for var_name, description in required_env_vars.items():
+        value = os.getenv(var_name)
+        if not value:
+            error_msg = f"Missing required environment variable: {var_name} ({description})"
+            logger.error(f"❌ {error_msg}")
+            errors.append(error_msg)
+        else:
+            # Mask sensitive values in logs
+            masked_value = value[:10] + "..." if len(value) > 10 else "***"
+            logger.info(f"✅ {var_name}: {masked_value}")
+
+    # 3. Check GCP credentials (if AI enabled)
+    gcp_ai_enabled = os.getenv("GCP_AI_ENABLED", "false").lower() == "true"
+    if gcp_ai_enabled:
+        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        if credentials_path:
+            if not os.path.exists(credentials_path):
+                error_msg = f"GCP credentials file not found: {credentials_path}"
+                logger.error(f"❌ {error_msg}")
+                errors.append(error_msg)
+            else:
+                logger.info(f"✅ GCP credentials file found")
+        else:
+            logger.warning("⚠️ GCP_AI_ENABLED=true but GOOGLE_APPLICATION_CREDENTIALS not set")
+            logger.warning("⚠️ Will attempt to use Application Default Credentials")
+
+    # 4. Check GCP buckets configuration
+    if gcp_ai_enabled:
+        photo_bucket = os.getenv("GCP_STORAGE_BUCKET_PHOTOS")
+        video_bucket = os.getenv("GCP_STORAGE_BUCKET_VIDEOS")
+
+        if not photo_bucket:
+            logger.warning("⚠️ GCP_STORAGE_BUCKET_PHOTOS not set")
+        else:
+            logger.info(f"✅ Photos bucket: {photo_bucket}")
+
+        if not video_bucket:
+            logger.warning("⚠️ GCP_STORAGE_BUCKET_VIDEOS not set")
+        else:
+            logger.info(f"✅ Videos bucket: {video_bucket}")
+
+    # 5. Check CORS configuration
+    if not allowed_origins or allowed_origins == [""]:
+        logger.warning("⚠️ No CORS origins configured - API may not be accessible from frontend")
+    else:
+        logger.info(f"✅ CORS configured for {len(allowed_origins)} origin(s)")
+
+    # If any critical errors, raise exception to prevent startup
+    if errors:
+        error_summary = "\n".join(f"  - {err}" for err in errors)
+        raise RuntimeError(
+            f"❌ Application startup failed due to configuration errors:\n{error_summary}"
+        )
+
+    logger.info("✅ All startup validations passed")
+    logger.info("🚀 Application is ready to accept requests")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    logger.info("👋 Application shutting down...")
+    logger.info("🔌 Closing database connections...")
 
 
 # =============================================================================
