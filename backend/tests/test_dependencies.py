@@ -1,8 +1,9 @@
 """Unit tests for FastAPI dependencies"""
 import pytest
 from fastapi import HTTPException
-from app.dependencies import
+from app.dependencies import get_survey_or_404, get_survey_by_id_or_404, get_submission_or_404, get_response_or_404, validate_survey_active, validate_submission_not_completed
 from app.crud import survey as survey_crud
+from app.models import survey as survey_models
 
 
 class TestGetSurveyOr404:
@@ -27,7 +28,6 @@ class TestGetSurveyOr404:
     def test_returns_correct_survey_by_slug(self, db_session, sample_survey):
         """Should return correct survey matching slug"""
         # Create another survey
-from app.models import survey as survey_models
         other_survey = survey_models.Survey(
             survey_slug="other-survey-456",
             name="Other Survey",
@@ -45,7 +45,6 @@ from app.models import survey as survey_models
 
     def test_works_with_inactive_survey(self, db_session):
         """Should return inactive surveys (doesn't filter by active status)"""
-from app.models import survey as survey_models
         inactive_survey = survey_models.Survey(
             survey_slug="inactive-survey",
             name="Inactive Survey",
@@ -120,7 +119,6 @@ class TestGetResponseOr404:
     def test_returns_correct_response_by_id(self, db_session, sample_response):
         """Should return correct response matching ID"""
         # Create another response
-from app.models import survey as survey_models
         other_response = survey_models.Response(
             submission_id=sample_response.submission_id,
             question="Another question?",

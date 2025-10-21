@@ -57,7 +57,7 @@ def create_submission(survey_slug: str, submission_data: survey_schemas.Submissi
         survey_id=survey.id,
         **submission_data.dict()
     )
-    return survey_crud.create_submission(db=db, submission=submission)
+    return survey_crud.create_submission(db=db, submission_data=submission)
 
 
 @router.get("/submissions/{submission_id}", response_model=survey_schemas.SubmissionWithResponses)
@@ -111,7 +111,7 @@ def create_response(submission_id: int, response: survey_schemas.ResponseCreateR
         **response.dict(exclude_unset=True)
     )
 
-    created_response = survey_crud.create_response(db=db, response=response_create)
+    created_response = survey_crud.create_response(db=db, response_data=response_create)
 
     # Trigger AI analysis for photo/video responses
     if response.question_type == "photo" and response.photo_url:

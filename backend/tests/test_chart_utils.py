@@ -1,6 +1,6 @@
 """Unit tests for chart utilities"""
 import pytest
-from app.utils.charts import
+from app.utils.charts import ChartColorPalette
 
 
 class TestChartColorPalette:

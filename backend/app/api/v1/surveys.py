@@ -21,7 +21,13 @@ router = APIRouter(prefix="/api", tags=["surveys"])
 @router.post("/surveys/", response_model=survey_schemas.Survey)
 def create_survey(survey: survey_schemas.SurveyCreate, db: Session = Depends(get_db)):
     """Create a new survey"""
-    return survey_crud.create_survey(db=db, survey_data=survey)
+    try:
+        return survey_crud.create_survey(db=db, survey_data=survey)
+    except Exception as e:
+        # Handle duplicate slug error
+        if "already exists" in str(e):
+            raise HTTPException(status_code=400, detail=str(e))
+        raise
 
 
 @router.get("/surveys/")

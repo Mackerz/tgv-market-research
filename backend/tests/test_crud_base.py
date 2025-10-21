@@ -1,6 +1,6 @@
 """Unit tests for CRUD base class"""
 import pytest
-from app.crud.base import
+from app.crud.base import CRUDBase
 from pydantic import BaseModel
 from typing import Optional
 from app.models import user as models

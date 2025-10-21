@@ -23,6 +23,10 @@ class ChartColorPalette:
         Returns:
             List of color hex codes
         """
+        # Handle edge cases
+        if count <= 0:
+            return []
+
         if count <= len(cls.DEFAULT_COLORS):
             return cls.DEFAULT_COLORS[:count]
 

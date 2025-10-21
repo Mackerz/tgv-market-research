@@ -43,17 +43,22 @@ class CRUDSurvey(CRUDBase[Survey, SurveyCreate, SurveyUpdate]):
         return query.offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: SurveyCreate) -> Survey:
-        """Create survey with unique slug generation"""
-        # Generate unique slug if not provided or if it already exists
-        survey_slug = obj_in.survey_slug
-        while self.get_by_slug(db, survey_slug):
-            survey_slug = generate_survey_slug()
+        """Create survey with unique slug validation"""
+        # Check if slug already exists
+        existing_survey = self.get_by_slug(db, obj_in.survey_slug)
+        if existing_survey:
+            from sqlalchemy.exc import IntegrityError
+            raise IntegrityError(
+                f"Survey with slug '{obj_in.survey_slug}' already exists",
+                params=None,
+                orig=None
+            )
 
         # Convert Pydantic models to dict for JSON storage
         survey_flow_dict = [q.dict() for q in obj_in.survey_flow]
 
         db_obj = self.model(
-            survey_slug=survey_slug,
+            survey_slug=obj_in.survey_slug,
             name=obj_in.name,
             survey_flow=survey_flow_dict,
             is_active=obj_in.is_active,
@@ -72,7 +77,13 @@ class CRUDSurvey(CRUDBase[Survey, SurveyCreate, SurveyUpdate]):
 
         # Convert survey_flow to dict if present
         if 'survey_flow' in update_data and update_data['survey_flow']:
-            update_data['survey_flow'] = [q.dict() for q in update_data['survey_flow']]
+            # Handle both Pydantic models and dicts
+            survey_flow = update_data['survey_flow']
+            if survey_flow and len(survey_flow) > 0:
+                # Check if first item is a dict or Pydantic model
+                if hasattr(survey_flow[0], 'dict'):
+                    update_data['survey_flow'] = [q.dict() for q in survey_flow]
+                # If it's already a dict, leave it as is
 
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 

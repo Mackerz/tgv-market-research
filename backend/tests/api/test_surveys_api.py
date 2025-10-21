@@ -224,7 +224,7 @@ class TestSurveySubmissions:
         submission_data = {
             "email": "newuser@example.com",
             "phone_number": "1234567890",
-            "region": "North America",
+            "region": "US",
             "date_of_birth": "1990-01-01",
             "gender": "Male"
         }
@@ -237,7 +237,7 @@ class TestSurveySubmissions:
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == "newuser@example.com"
-        assert data["region"] == "North America"
+        assert data["region"] == "US"
         assert data["is_completed"] is False
 
     def test_create_submission_minimal_data(self, client: TestClient, sample_survey):
@@ -245,7 +245,7 @@ class TestSurveySubmissions:
         submission_data = {
             "email": "minimal@example.com",
             "phone_number": "9876543210",
-            "region": "Europe",
+            "region": "UK",
             "date_of_birth": "1995-05-15",
             "gender": "Female"
         }
@@ -258,14 +258,14 @@ class TestSurveySubmissions:
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == "minimal@example.com"
-        assert data["region"] == "Europe"
+        assert data["region"] == "UK"
 
     def test_create_submission_invalid_email(self, client: TestClient, sample_survey):
         """Test creating submission with invalid email fails"""
         submission_data = {
             "email": "not-an-email",
             "phone_number": "1234567890",
-            "region": "Asia",
+            "region": "CA",
             "date_of_birth": "1988-03-20",
             "gender": "Male"
         }
@@ -282,7 +282,7 @@ class TestSurveySubmissions:
         submission_data = {
             "email": "user@example.com",
             "phone_number": "5551234567",
-            "region": "Africa",
+            "region": "AU",
             "date_of_birth": "1992-11-10",
             "gender": "Female"
         }

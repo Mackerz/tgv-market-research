@@ -1,7 +1,7 @@
 """Unit tests for logging utilities"""
 import pytest
 import logging
-from app.utils.logging import
+from app.utils.logging import ContextLogger, get_context_logger
 
 
 class TestContextLogger:
@@ -162,6 +162,12 @@ class TestGetContextLogger:
 
 class TestContextLoggerIntegration:
     """Integration tests for ContextLogger"""
+
+    @pytest.fixture
+    def log_capture(self, caplog):
+        """Capture log output"""
+        caplog.set_level(logging.INFO)
+        return caplog
 
     def test_typical_operation_lifecycle(self, log_capture):
         """Should handle typical operation start-complete lifecycle"""

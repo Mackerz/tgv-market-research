@@ -1,6 +1,6 @@
 """Unit tests for query helpers"""
 import pytest
-from app.utils.queries import
+from app.utils.queries import (
     get_approved_submissions_query,
     get_approved_submission_ids_subquery,
     get_completed_submissions_query,

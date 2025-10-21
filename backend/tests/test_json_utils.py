@@ -1,7 +1,7 @@
 """Unit tests for JSON utilities"""
 import pytest
 import json
-from app.utils.json import
+from app.utils.json import safe_json_parse, safe_json_dumps
 
 
 class TestSafeJsonParse:

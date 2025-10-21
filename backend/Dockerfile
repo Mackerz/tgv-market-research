@@ -33,6 +33,8 @@ WORKDIR /app
 # Install only runtime system dependencies
 RUN apt-get update && apt-get install -y \
     libpq5 \
+    postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy virtual environment from builder
@@ -42,10 +44,13 @@ COPY --from=builder /app/.venv /app/.venv
 COPY app /app/app
 COPY alembic /app/alembic
 COPY alembic.ini /app/alembic.ini
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY create_sample_survey_local.py /app/create_sample_survey_local.py
 
-# Create non-root user
+# Create non-root user and set permissions
 RUN adduser --disabled-password --gecos '' --shell /bin/bash appuser \
-    && chown -R appuser:appuser /app
+    && chown -R appuser:appuser /app \
+    && chmod +x /app/docker-entrypoint.sh
 
 USER appuser
 
