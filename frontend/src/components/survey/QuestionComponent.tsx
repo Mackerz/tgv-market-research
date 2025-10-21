@@ -6,7 +6,8 @@ import SingleChoiceQuestion from "./questions/SingleChoiceQuestion";
 import MultipleChoiceQuestion from "./questions/MultipleChoiceQuestion";
 import PhotoQuestion from "./questions/PhotoQuestion";
 import VideoQuestion from "./questions/VideoQuestion";
-import { apiUrl } from "@/config/api";
+import { apiClient, ApiError } from "@/lib/api";
+import type { SurveyQuestion } from "@/types/survey";
 
 interface Survey {
   id: number;
@@ -14,14 +15,6 @@ interface Survey {
   name: string;
   survey_flow: SurveyQuestion[];
   is_active: boolean;
-}
-
-interface SurveyQuestion {
-  id: string;
-  question: string;
-  question_type: 'free_text' | 'single' | 'multi' | 'photo' | 'video';
-  required: boolean;
-  options?: string[];
 }
 
 interface SurveyProgress {
@@ -61,26 +54,11 @@ export default function QuestionComponent({
     setError('');
 
     try {
-      const response = await fetch(apiUrl(`/api/submissions/${submissionId}/responses`), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: currentQuestion.question,
-          question_type: currentQuestion.question_type,
-          ...answerData
-        }),
+      await apiClient.post(`/api/submissions/${submissionId}/responses`, {
+        question: currentQuestion.question,
+        question_type: currentQuestion.question_type,
+        ...answerData
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error Response:', errorData);
-        const errorMessage = typeof errorData.detail === 'string'
-          ? errorData.detail
-          : JSON.stringify(errorData.detail || errorData);
-        throw new Error(errorMessage);
-      }
 
       // Move to next question or complete survey
       if (isLastQuestion) {
@@ -91,7 +69,11 @@ export default function QuestionComponent({
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError(error instanceof Error ? error.message : 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }

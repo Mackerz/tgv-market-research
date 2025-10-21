@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import { apiUrl } from "@/config/api";
+import { apiClient, ApiError } from "@/lib/api";
 
 interface PersonalInfoFormProps {
   surveySlug: string;
@@ -104,24 +104,15 @@ export default function PersonalInfoForm({ surveySlug, onComplete }: PersonalInf
     setLoading(true);
 
     try {
-      const response = await fetch(apiUrl(`/api/surveys/${surveySlug}/submit`), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to submit personal information');
-      }
-
-      const result = await response.json();
+      const result = await apiClient.post<{ id: number }>(`/api/surveys/${surveySlug}/submit`, formData);
       onComplete(result.id);
     } catch (error) {
       console.error('Error submitting form:', error);
-      setErrors({ submit: error instanceof Error ? error.message : 'An error occurred' });
+      if (error instanceof ApiError) {
+        setErrors({ submit: error.message });
+      } else {
+        setErrors({ submit: error instanceof Error ? error.message : 'An error occurred' });
+      }
     } finally {
       setLoading(false);
     }

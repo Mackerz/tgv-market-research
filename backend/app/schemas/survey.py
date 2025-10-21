@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
 from enum import Enum
+from app.utils.validation import validate_email_for_pydantic
 
 # Enums for validation
 class QuestionType(str, Enum):
@@ -86,6 +87,12 @@ class SubmissionPersonalInfo(BaseModel):
     region: Region
     date_of_birth: str  # YYYY-MM-DD format
     gender: Gender
+
+    @field_validator('email')
+    @classmethod
+    def validate_email_extended(cls, v):
+        """Enhanced email validation with disposable domain blocking"""
+        return validate_email_for_pydantic(v)
 
     @field_validator('date_of_birth')
     @classmethod

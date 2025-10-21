@@ -17,6 +17,7 @@ from app.schemas.survey import (
     ResponseUpdate,
     SurveyProgress,
 )
+from app.utils.validation import sanitize_user_input
 
 
 # Helper function to generate survey slug
@@ -109,6 +110,31 @@ class CRUDSubmission(CRUDBase[Submission, SubmissionCreate, SubmissionUpdate]):
             .all()
         )
 
+    def get_multi_by_survey_with_media(
+        self, db: Session, *, survey_id: int, skip: int = 0, limit: int = 100
+    ) -> List[Submission]:
+        """
+        Get submissions by survey with responses and media analysis eager loaded.
+
+        Uses nested selectinload to prevent N+1 queries when accessing
+        submission.responses[*].media_analysis relationships.
+
+        This is optimized for endpoints that need full submission data
+        including media analysis (e.g., reporting, media summaries).
+        """
+        return (
+            db.query(self.model)
+            .options(
+                selectinload(self.model.responses).selectinload(
+                    Response.media_analysis
+                )
+            )
+            .filter(self.model.survey_id == survey_id)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[Submission]:
@@ -171,13 +197,22 @@ class CRUDResponse(CRUDBase[Response, ResponseCreate, ResponseUpdate]):
         )
 
     def create(self, db: Session, *, obj_in: ResponseCreate) -> Response:
-        """Create response"""
+        """Create response with input sanitization"""
+        # Sanitize user text inputs to prevent XSS attacks
+        sanitized_single_answer = None
+        if obj_in.single_answer:
+            sanitized_single_answer = sanitize_user_input(obj_in.single_answer, max_length=500)
+
+        sanitized_free_text = None
+        if obj_in.free_text_answer:
+            sanitized_free_text = sanitize_user_input(obj_in.free_text_answer, max_length=2000)
+
         db_obj = self.model(
             submission_id=obj_in.submission_id,
             question=obj_in.question,
             question_type=obj_in.question_type,
-            single_answer=obj_in.single_answer,
-            free_text_answer=obj_in.free_text_answer,
+            single_answer=sanitized_single_answer,
+            free_text_answer=sanitized_free_text,
             multiple_choice_answer=obj_in.multiple_choice_answer,
             photo_url=obj_in.photo_url,
             video_url=obj_in.video_url,

@@ -12,6 +12,7 @@ import logging
 
 from app.core.database import get_db, engine, Base
 from app.api.v1 import api_router
+from app.core.error_handlers import register_error_handlers
 
 # Import models to ensure they're registered with SQLAlchemy
 from app.models.user import User, Post
@@ -48,6 +49,9 @@ app.state.limiter = limiter
 
 # Add rate limit exceeded handler
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Register centralized error handlers
+register_error_handlers(app)
 
 # Log startup information
 logger.info("🚀 FastAPI Backend starting up...")

@@ -10,6 +10,8 @@ python-multipart==0.0.6
 slowapi==0.1.9
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bleach==6.1.0
+python-magic==0.4.27
 google-cloud-storage==2.10.0
 google-cloud-vision==3.4.5
 google-cloud-videointelligence==2.11.4

@@ -65,13 +65,24 @@ async def verify_api_key(api_key: str = Security(api_key_header)) -> str:
     Raises:
         HTTPException: If API key is missing or invalid
     """
-    expected_api_key = get_api_key_from_config()
+    import logging
 
-    # If no API key is configured, allow all requests (development mode)
+    expected_api_key = get_api_key_from_config()
+    environment = os.getenv("ENVIRONMENT", "development")
+
+    # Only allow bypass in explicit development mode
     if not expected_api_key:
-        import logging
-        logging.warning("⚠️ No API key configured - authentication disabled (dev mode only!)")
-        return "dev-mode-bypass"
+        if environment == "production":
+            # NEVER bypass in production - fail closed
+            logging.error("🔴 CRITICAL: API key not configured in production!")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication not configured (critical configuration error)",
+            )
+        else:
+            # Allow bypass only in development
+            logging.warning("⚠️ No API key configured - authentication disabled (dev mode only!)")
+            return "dev-mode-bypass"
 
     # Check if API key was provided
     if not api_key:
@@ -81,8 +92,8 @@ async def verify_api_key(api_key: str = Security(api_key_header)) -> str:
             headers={"WWW-Authenticate": "ApiKey"},
         )
 
-    # Verify API key matches
-    if api_key != expected_api_key:
+    # Use constant-time comparison to prevent timing attacks
+    if not secrets.compare_digest(api_key, expected_api_key):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid API key",

@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { CheckIcon } from "@heroicons/react/24/solid";
-
-interface SurveyQuestion {
-  id: string;
-  question: string;
-  question_type: string;
-  required: boolean;
-  options?: string[];
-}
+import type { SurveyQuestion } from "@/types/survey";
 
 interface MultipleChoiceQuestionProps {
   question: SurveyQuestion;

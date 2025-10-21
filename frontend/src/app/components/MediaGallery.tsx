@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { apiUrl } from '@/config/api'
+import { apiClient, ApiError } from '@/lib/api'
 
 interface MediaGalleryItem {
   id: number
@@ -228,19 +228,17 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
       setLoading(true)
 
       // Build query parameters
-      const params = new URLSearchParams()
-      if (selectedLabels.length > 0) params.append('labels', selectedLabels.join(','))
-      if (selectedRegions.length > 0) params.append('regions', selectedRegions.join(','))
-      if (selectedGenders.length > 0) params.append('genders', selectedGenders.join(','))
-      if (ageMin !== undefined) params.append('age_min', ageMin.toString())
-      if (ageMax !== undefined) params.append('age_max', ageMax.toString())
+      const params: Record<string, string> = {}
+      if (selectedLabels.length > 0) params.labels = selectedLabels.join(',')
+      if (selectedRegions.length > 0) params.regions = selectedRegions.join(',')
+      if (selectedGenders.length > 0) params.genders = selectedGenders.join(',')
+      if (ageMin !== undefined) params.age_min = ageMin.toString()
+      if (ageMax !== undefined) params.age_max = ageMax.toString()
 
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/media-gallery?${params}`))
-      if (!response.ok) {
-        throw new Error('Failed to fetch media gallery')
-      }
-
-      const data: MediaGalleryResponse = await response.json()
+      const data = await apiClient.get<MediaGalleryResponse>(
+        `/api/reports/${reportSlug}/media-gallery`,
+        { params }
+      )
       setGalleryData(data)
 
       // Extract unique filter options from the data
@@ -258,7 +256,11 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
       setAvailableRegions(Array.from(regions).sort())
       setAvailableGenders(Array.from(genders).sort())
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      }
     } finally {
       setLoading(false)
     }

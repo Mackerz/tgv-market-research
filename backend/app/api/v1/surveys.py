@@ -14,6 +14,7 @@ from app.integrations.gcp.storage import upload_survey_photo, upload_survey_vide
 from app.dependencies import get_survey_or_404, get_survey_by_id_or_404
 from app.core.rate_limits import get_rate_limit
 from app.core.auth import RequireAPIKey
+from app.utils.validation import FileValidator
 
 router = APIRouter(prefix="/api", tags=["surveys"])
 limiter = Limiter(key_func=get_remote_address)
@@ -151,6 +152,9 @@ async def upload_photo(request: Request, survey_slug: str, file: UploadFile = Fi
     # Verify survey exists using dependency helper
     get_survey_or_404(survey_slug, db)
 
+    # Validate file upload (size, MIME type, content)
+    file = await FileValidator.validate_image(file)
+
     try:
         file_url, file_id = upload_survey_photo(file, survey_slug)
         return survey_schemas.FileUploadResponse(
@@ -169,6 +173,9 @@ async def upload_video(request: Request, survey_slug: str, file: UploadFile = Fi
     """Upload a video for a survey (Rate limit: 20/minute for cost control)"""
     # Verify survey exists using dependency helper
     get_survey_or_404(survey_slug, db)
+
+    # Validate file upload (size, MIME type, content)
+    file = await FileValidator.validate_video(file)
 
     try:
         file_url, file_id, thumbnail_url = upload_survey_video(file, survey_slug)

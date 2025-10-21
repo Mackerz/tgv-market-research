@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-interface SurveyQuestion {
-  id: string;
-  question: string;
-  question_type: string;
-  required: boolean;
-  options?: string[];
-}
+import type { SurveyQuestion } from "@/types/survey";
 
 interface SingleChoiceQuestionProps {
   question: SurveyQuestion;

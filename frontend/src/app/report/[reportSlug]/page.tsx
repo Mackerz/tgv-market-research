@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import MediaGallery from '../../components/MediaGallery'
-import { apiUrl } from '@/config/api'
+import { apiClient, ApiError } from '@/lib/api'
 
 interface Submission {
   id: number
@@ -163,32 +163,35 @@ export default function ReportPage() {
   const fetchSubmissions = async () => {
     try {
       setLoading(true)
-      let approved: boolean | undefined | null = undefined
+      let approved: string | undefined = undefined
 
       if (approvalFilter === 'approved') {
-        approved = true
+        approved = 'true'
       } else if (approvalFilter === 'rejected') {
-        approved = false
+        approved = 'false'
       } else if (approvalFilter === 'pending') {
-        approved = null
+        approved = 'null'
       }
 
-      const params = new URLSearchParams()
+      const params: Record<string, string> = {
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      }
       if (approved !== undefined) {
-        params.append('approved', approved === null ? 'null' : approved.toString())
-      }
-      params.append('sort_by', sortBy)
-      params.append('sort_order', sortOrder)
-
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions?${params}`))
-      if (!response.ok) {
-        throw new Error('Failed to fetch submissions')
+        params.approved = approved
       }
 
-      const data: SubmissionsResponse = await response.json()
+      const data = await apiClient.get<SubmissionsResponse>(
+        `/api/reports/${reportSlug}/submissions`,
+        { params }
+      )
       setSubmissions(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      }
     } finally {
       setLoading(false)
     }
@@ -196,26 +199,22 @@ export default function ReportPage() {
 
   const fetchSubmissionDetail = async (submissionId: number) => {
     try {
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions/${submissionId}`))
-      if (!response.ok) {
-        throw new Error('Failed to fetch submission details')
-      }
-
-      const data: SubmissionDetailResponse = await response.json()
+      const data = await apiClient.get<SubmissionDetailResponse>(
+        `/api/reports/${reportSlug}/submissions/${submissionId}`
+      )
       setSelectedSubmission(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      }
     }
   }
 
   const handleApproveSubmission = async (submissionId: number) => {
     try {
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions/${submissionId}/approve`), {
-        method: 'PUT'
-      })
-      if (!response.ok) {
-        throw new Error('Failed to approve submission')
-      }
+      await apiClient.put(`/api/reports/${reportSlug}/submissions/${submissionId}/approve`)
 
       // Refresh submissions list and selected submission
       await fetchSubmissions()
@@ -223,18 +222,17 @@ export default function ReportPage() {
         await fetchSubmissionDetail(submissionId)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      }
     }
   }
 
   const handleRejectSubmission = async (submissionId: number) => {
     try {
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/submissions/${submissionId}/reject`), {
-        method: 'PUT'
-      })
-      if (!response.ok) {
-        throw new Error('Failed to reject submission')
-      }
+      await apiClient.put(`/api/reports/${reportSlug}/submissions/${submissionId}/reject`)
 
       // Refresh submissions list and selected submission
       await fetchSubmissions()
@@ -242,7 +240,11 @@ export default function ReportPage() {
         await fetchSubmissionDetail(submissionId)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      }
     }
   }
 

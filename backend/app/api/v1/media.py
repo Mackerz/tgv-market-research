@@ -40,8 +40,13 @@ def get_response_media_analysis(response_id: int, db: Session = Depends(get_db))
 
 
 @router.get("/media-analyses/", response_model=List[media_schemas.Media])
-def get_all_media_analyses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get all media analyses"""
+def get_all_media_analyses(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
+    """Get all media analyses (ADMIN ONLY - Requires: X-API-Key header)"""
     return media_crud.get_all_media_analyses(db, skip=skip, limit=limit)
 
 
@@ -50,8 +55,10 @@ def get_survey_media_summary(survey_id: int, db: Session = Depends(get_db)):
     """Get a summary of all media analyses for a survey"""
     import json
 
-    # Get all submissions for the survey
-    submissions = survey_crud.get_submissions_by_survey(db, survey_id)
+    # Get all submissions with responses and media eager loaded (prevents N+1 queries)
+    submissions = survey_crud.submission.get_multi_by_survey_with_media(
+        db, survey_id=survey_id, skip=0, limit=1000
+    )
 
     total_analyses = 0
     photo_analyses = 0
@@ -163,8 +170,8 @@ async def proxy_media(gcs_url: str, request: Request):
 # =============================================================================
 
 @router.get("/debug/ai-status")
-def get_ai_status():
-    """Get the status of AI services for debugging"""
+def get_ai_status(api_key: str = RequireAPIKey):
+    """Get the status of AI services for debugging (ADMIN ONLY - Requires: X-API-Key header)"""
     from app.integrations.gcp.vision import gcp_ai_analyzer
     from app.integrations.gcp.gemini import gemini_labeler
 

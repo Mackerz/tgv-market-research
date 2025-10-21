@@ -16,6 +16,7 @@ from app.dependencies import (
     validate_submission_not_completed
 )
 from app.core.rate_limits import get_rate_limit
+from app.core.auth import RequireAPIKey
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +49,26 @@ def create_submission(request: Request, survey_slug: str, submission_data: surve
 
 @router.get("/submissions/{submission_id}", response_model=survey_schemas.SubmissionWithResponses)
 def read_submission(submission_id: int, db: Session = Depends(get_db)):
-    """Get a specific submission by ID"""
+    """
+    Get a specific submission by ID
+
+    NOTE: This endpoint is public to allow survey takers to view their own submission.
+    In production, you may want to add session-based authentication to ensure users
+    can only view their own submissions.
+    """
     # Get submission using dependency helper
     return get_submission_or_404(submission_id, db)
 
 
 @router.get("/surveys/{survey_id}/submissions", response_model=List[survey_schemas.Submission])
-def read_survey_submissions(survey_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get all submissions for a survey"""
+def read_survey_submissions(
+    survey_id: int,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
+    """Get all submissions for a survey (ADMIN ONLY - Requires: X-API-Key header)"""
     submissions = survey_crud.get_submissions_by_survey(db, survey_id=survey_id, skip=skip, limit=limit)
     return submissions
 
