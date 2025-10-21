@@ -80,18 +80,18 @@ def update_report_settings(db: Session, survey_id: int, settings_update: setting
 def _sync_question_display_names(db: Session, report_settings: settings_models.ReportSettings):
     """Synchronize question display names with survey flow"""
     # Get the survey
-    survey = db.query(survey_models.Survey).filter(
-        survey_models.Survey.id == report_settings.survey_id
+    survey_obj = db.query(survey.Survey).filter(
+        survey.Survey.id == report_settings.survey_id
     ).first()
 
-    if not survey or not survey.survey_flow:
+    if not survey_obj or not survey_obj.survey_flow:
         return
 
     # Get existing question display names
     existing_questions = {q.question_id: q for q in report_settings.question_display_names}
 
     # Process each question in the survey flow
-    for question_data in survey.survey_flow:
+    for question_data in survey_obj.survey_flow:
         question_id = question_data.get('id')
         question_text = question_data.get('question', '')
 
@@ -173,17 +173,17 @@ def get_report_settings_with_questions(db: Session, survey_id: int) -> Optional[
     settings = create_or_get_report_settings(db, survey_id)
 
     # Get survey to extract questions
-    survey = db.query(survey_models.Survey).filter(
-        survey_models.Survey.id == survey_id
+    survey_obj = db.query(survey.Survey).filter(
+        survey.Survey.id == survey_id
     ).first()
 
-    if not survey:
+    if not survey_obj:
         return None
 
     # Extract available questions from survey flow
     available_questions = []
-    if survey.survey_flow:
-        for question_data in survey.survey_flow:
+    if survey_obj.survey_flow:
+        for question_data in survey_obj.survey_flow:
             if question_data.get('id') and question_data.get('question'):
                 available_questions.append({
                     'id': question_data['id'],

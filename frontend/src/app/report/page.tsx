@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
+import { apiUrl } from '@/config/api'
 
 interface Survey {
   id: number
@@ -16,14 +17,6 @@ interface Survey {
 interface SurveysResponse {
   surveys: Survey[]
   total_count: number
-}
-
-// API URL configuration
-function apiUrl(path: string): string {
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:8000${path}`
-  }
-  return `http://localhost:8000${path}`
 }
 
 export default function SurveysListPage() {

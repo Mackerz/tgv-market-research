@@ -10,14 +10,22 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-try:
-    DATABASE_URL = get_database_url()
-    logger.info("✅ Database URL retrieved successfully")
-except Exception as e:
-    logger.error(f"❌ Failed to get database URL: {e}")
-    # Fallback for local development
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/fastapi_db")
-    logger.warning(f"⚠️ Using fallback database URL")
+# Check if DATABASE_URL is explicitly set (for local Docker/dev environments)
+# This takes precedence over GCP Secret Manager
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    # Try to get from GCP Secret Manager (for production)
+    try:
+        DATABASE_URL = get_database_url()
+        logger.info("✅ Database URL retrieved from GCP Secret Manager")
+    except Exception as e:
+        logger.error(f"❌ Failed to get database URL from GCP: {e}")
+        # Final fallback
+        DATABASE_URL = "postgresql://user:password@localhost:5432/fastapi_db"
+        logger.warning(f"⚠️ Using default fallback database URL")
+else:
+    logger.info("✅ Database URL loaded from environment variable")
 
 # Configure connection pooling for production
 # pool_size: number of connections to keep open

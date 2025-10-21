@@ -2,6 +2,7 @@
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -59,12 +60,26 @@ logger.info(f"📊 Database connected: {engine.url}")
 logger.info(f"🔧 GCP AI enabled: {os.getenv('GCP_AI_ENABLED', 'false')}")
 logger.info(f"🗂️ GCP credentials path: {os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'not set')}")
 
-# CORS Configuration using Secret Manager
+# CORS Configuration
 from app.integrations.gcp.secrets import get_allowed_origins
 
-allowed_origins_str = get_allowed_origins()
-allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+# Check if ALLOWED_ORIGINS is explicitly set in environment (for local Docker/dev)
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS")
 
+if not allowed_origins_str:
+    # Try to get from GCP Secret Manager (for production)
+    try:
+        allowed_origins_str = get_allowed_origins()
+        logger.info("✅ CORS origins retrieved from GCP Secret Manager")
+    except Exception as e:
+        logger.error(f"❌ Failed to get CORS origins from GCP: {e}")
+        # Final fallback for local development
+        allowed_origins_str = "http://localhost:3000"
+        logger.warning(f"⚠️ Using default CORS origin: {allowed_origins_str}")
+else:
+    logger.info("✅ CORS origins loaded from environment variable")
+
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
 logger.info(f"✅ Configured CORS origins: {allowed_origins}")
 
 # Security Headers Middleware
@@ -155,7 +170,7 @@ async def startup_validation():
     # 1. Check database connection
     try:
         db = next(get_db())
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db.close()
         logger.info("✅ Database connection validated")
     except Exception as e:

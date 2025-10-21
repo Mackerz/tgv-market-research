@@ -33,9 +33,15 @@ export default function SurveyPage() {
     onComplete: () => setCurrentStep('complete'),
   });
 
-  const handlePersonalInfoComplete = async (email: string, region: string, age?: number) => {
+  const handlePersonalInfoComplete = async (
+    email: string,
+    phone_number: string,
+    region: string,
+    date_of_birth: string,
+    gender: string
+  ) => {
     try {
-      await startSurvey(email, region, age);
+      await startSurvey(email, phone_number, region, date_of_birth, gender);
       setCurrentStep('questions');
     } catch (err) {
       console.error('Failed to start survey:', err);
@@ -109,12 +115,7 @@ export default function SurveyPage() {
         {/* Survey Steps */}
         {currentStep === 'personal-info' && (
           <PersonalInfoForm
-            surveySlug={surveySlug}
-            onComplete={(submissionId) => {
-              // The useSurvey hook handles submission creation
-              // We just need to move to the next step
-              setCurrentStep('questions');
-            }}
+            onComplete={handlePersonalInfoComplete}
           />
         )}
 

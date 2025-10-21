@@ -3,6 +3,10 @@ set -e
 
 echo "🚀 Starting backend container..."
 
+# Ensure virtual environment is in PATH
+export PATH="/app/.venv/bin:$PATH"
+export PYTHONPATH="/app:$PYTHONPATH"
+
 # Wait for database to be ready
 echo "⏳ Waiting for database to be ready..."
 until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\q' 2>/dev/null; do
@@ -15,13 +19,13 @@ echo "✅ Database is ready!"
 # Run database migrations
 echo "📦 Running database migrations..."
 cd /app
-alembic upgrade head
+/app/.venv/bin/alembic upgrade head
 
 echo "✅ Migrations complete!"
 
 # Wait a bit for backend to fully initialize
 echo "⏳ Starting backend server..."
-uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+/app/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 &
 BACKEND_PID=$!
 
 # Wait for backend to be ready
@@ -43,7 +47,7 @@ echo "✅ Backend is ready!"
 # Create sample survey
 echo "🔨 Creating sample survey..."
 cd /app
-python3 /app/create_sample_survey_local.py
+/app/.venv/bin/python /app/create_sample_survey_local.py
 
 echo "✅ Sample survey created!"
 echo "🎉 Backend is fully ready!"

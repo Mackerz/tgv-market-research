@@ -32,8 +32,10 @@ describe('useSurvey Hook', () => {
   const mockSubmission = {
     id: 1,
     email: 'test@example.com',
-    region: 'North',
-    age: 25,
+    phone_number: '+1234567890',
+    region: 'US',
+    date_of_birth: '1998-01-01',
+    gender: 'Male',
     submitted_at: new Date().toISOString(),
     is_completed: false,
     is_approved: null,
@@ -80,13 +82,15 @@ describe('useSurvey Hook', () => {
 
     // Start survey
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     expect(surveyService.createSubmission).toHaveBeenCalledWith('test-survey', {
       email: 'test@example.com',
-      region: 'North',
-      age: 25,
+      phone_number: '+1234567890',
+      region: 'US',
+      date_of_birth: '1998-01-01',
+      gender: 'Male',
     });
     expect(result.current.submission).toEqual(mockSubmission);
     expect(result.current.progress).toEqual(mockProgress);
@@ -107,17 +111,22 @@ describe('useSurvey Hook', () => {
 
     // Start survey first
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     // Submit response
     await act(async () => {
-      await result.current.submitResponse('q1', 'My answer');
+      await result.current.submitResponse({
+        question: 'q1',
+        question_type: 'free_text',
+        free_text_answer: 'My answer',
+      });
     });
 
     expect(surveyService.createResponse).toHaveBeenCalledWith(1, {
-      question_id: 'q1',
-      value: 'My answer',
+      question: 'q1',
+      question_type: 'free_text',
+      free_text_answer: 'My answer',
     });
   });
 
@@ -134,7 +143,7 @@ describe('useSurvey Hook', () => {
     });
 
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     expect(result.current.currentIndex).toBe(0);
@@ -165,7 +174,7 @@ describe('useSurvey Hook', () => {
     });
 
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     // Move to second question first
@@ -196,7 +205,7 @@ describe('useSurvey Hook', () => {
     });
 
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     expect(result.current.currentIndex).toBe(0);
@@ -223,7 +232,7 @@ describe('useSurvey Hook', () => {
     });
 
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     // Navigate to last question
@@ -259,7 +268,7 @@ describe('useSurvey Hook', () => {
     });
 
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     // Complete survey
@@ -286,7 +295,7 @@ describe('useSurvey Hook', () => {
     });
 
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     expect(result.current.progress?.current_question).toBe(0);
@@ -315,7 +324,7 @@ describe('useSurvey Hook', () => {
     // Attempt to start survey
     await expect(
       act(async () => {
-        await result.current.startSurvey('test@example.com', 'North', 25);
+        await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
       })
     ).rejects.toThrow('Failed to create submission');
 
@@ -334,7 +343,11 @@ describe('useSurvey Hook', () => {
     // Try to submit response without starting survey
     await expect(
       act(async () => {
-        await result.current.submitResponse('q1', 'answer');
+        await result.current.submitResponse({
+          question: 'q1',
+          question_type: 'free_text',
+          free_text_answer: 'answer',
+        });
       })
     ).rejects.toThrow('No active submission');
   });
@@ -352,7 +365,7 @@ describe('useSurvey Hook', () => {
     });
 
     await act(async () => {
-      await result.current.startSurvey('test@example.com', 'North', 25);
+      await result.current.startSurvey('test@example.com', '+1234567890', 'US', '1998-01-01', 'Male');
     });
 
     expect(result.current.currentQuestion).toEqual(mockSurvey.survey_flow[0]);

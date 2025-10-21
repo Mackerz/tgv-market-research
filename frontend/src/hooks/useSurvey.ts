@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { surveyService } from '@/lib/api';
-import type { Survey, SurveyQuestion, Submission, Response, SurveyProgress } from '@/types';
+import type { Survey, SurveyQuestion, Submission, Response, ResponseCreate, SurveyProgress } from '@/types';
 import { useApi } from './useApi';
 
 interface UseSurveyOptions {
@@ -27,8 +27,14 @@ interface UseSurveyReturn {
   isLastQuestion: boolean;
 
   // Actions
-  startSurvey: (email: string, region: string, age?: number) => Promise<void>;
-  submitResponse: (questionId: string, value: any) => Promise<void>;
+  startSurvey: (
+    email: string,
+    phone_number: string,
+    region: string,
+    date_of_birth: string,
+    gender: string
+  ) => Promise<void>;
+  submitResponse: (response: ResponseCreate) => Promise<void>;
   nextQuestion: () => void;
   previousQuestion: () => void;
   completeAndSubmit: () => Promise<void>;
@@ -60,15 +66,23 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
   const error = surveyError || responseError;
 
   // Start survey (create submission)
-  const startSurvey = useCallback(async (email: string, region: string, age?: number) => {
+  const startSurvey = useCallback(async (
+    email: string,
+    phone_number: string,
+    region: string,
+    date_of_birth: string,
+    gender: string
+  ) => {
     try {
       setResponseLoading(true);
       setResponseError(null);
 
       const newSubmission = await surveyService.createSubmission(surveySlug, {
         email,
+        phone_number,
         region,
-        age,
+        date_of_birth,
+        gender,
       });
 
       setSubmission(newSubmission);
@@ -87,7 +101,7 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
   }, [surveySlug]);
 
   // Submit response for current question
-  const submitResponse = useCallback(async (questionId: string, value: any) => {
+  const submitResponse = useCallback(async (response: ResponseCreate) => {
     if (!submission) {
       throw new Error('No active submission');
     }
@@ -96,10 +110,7 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
       setResponseLoading(true);
       setResponseError(null);
 
-      await surveyService.createResponse(submission.id, {
-        question_id: questionId,
-        value,
-      });
+      await surveyService.createResponse(submission.id, response);
 
       // Refresh progress
       const updatedProgress = await surveyService.getProgress(submission.id);

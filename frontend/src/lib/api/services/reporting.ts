@@ -31,7 +31,7 @@ export const reportingService = {
     }
   ) => {
     // Convert approval filter to API format
-    const apiParams: any = {};
+    const apiParams: Record<string, string | number | undefined> = {};
 
     // Copy all params except approved
     if (params) {

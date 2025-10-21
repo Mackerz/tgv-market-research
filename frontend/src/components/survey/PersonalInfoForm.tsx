@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import { apiClient, ApiError } from "@/lib/api";
 
 interface PersonalInfoFormProps {
-  surveySlug: string;
-  onComplete: (submissionId: number) => void;
+  onComplete: (
+    email: string,
+    phone_number: string,
+    region: string,
+    date_of_birth: string,
+    gender: string
+  ) => Promise<void>;
 }
 
 const regions = [
@@ -31,7 +35,7 @@ const genders = [
   "I'd rather not say"
 ];
 
-export default function PersonalInfoForm({ surveySlug, onComplete }: PersonalInfoFormProps) {
+export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) {
   const [formData, setFormData] = useState({
     email: '',
     phone_number: '',
@@ -104,15 +108,16 @@ export default function PersonalInfoForm({ surveySlug, onComplete }: PersonalInf
     setLoading(true);
 
     try {
-      const result = await apiClient.post<{ id: number }>(`/api/surveys/${surveySlug}/submit`, formData);
-      onComplete(result.id);
+      await onComplete(
+        formData.email,
+        formData.phone_number,
+        formData.region,
+        formData.date_of_birth,
+        formData.gender
+      );
     } catch (error) {
       console.error('Error submitting form:', error);
-      if (error instanceof ApiError) {
-        setErrors({ submit: error.message });
-      } else {
-        setErrors({ submit: error instanceof Error ? error.message : 'An error occurred' });
-      }
+      setErrors({ submit: error instanceof Error ? error.message : 'An error occurred' });
     } finally {
       setLoading(false);
     }

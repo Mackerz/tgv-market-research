@@ -104,12 +104,12 @@ def get_question_response_data(
 
         if question_type == 'single':
             # Single choice: count submissions per answer
-            responses = db.query(survey_models.Response).filter(
+            responses = db.query(survey.Response).filter(
                 and_(
-                    survey_models.Response.submission_id.in_(approved_submission_ids),
-                    survey_models.Response.question == question_text,
-                    survey_models.Response.question_type == 'single',
-                    survey_models.Response.single_answer.isnot(None)
+                    survey.Response.submission_id.in_(approved_submission_ids),
+                    survey.Response.question == question_text,
+                    survey.Response.question_type == 'single',
+                    survey.Response.single_answer.isnot(None)
                 )
             ).all()
 
@@ -117,12 +117,12 @@ def get_question_response_data(
 
         elif question_type == 'multi':
             # Multi-choice: count distinct submissions per answer option
-            responses = db.query(survey_models.Response).filter(
+            responses = db.query(survey.Response).filter(
                 and_(
-                    survey_models.Response.submission_id.in_(approved_submission_ids),
-                    survey_models.Response.question == question_text,
-                    survey_models.Response.question_type == 'multi',
-                    survey_models.Response.multiple_choice_answer.isnot(None)
+                    survey.Response.submission_id.in_(approved_submission_ids),
+                    survey.Response.question == question_text,
+                    survey.Response.question_type == 'multi',
+                    survey.Response.multiple_choice_answer.isnot(None)
                 )
             ).all()
 
@@ -159,40 +159,40 @@ def get_media_analysis_data(db: Session, survey_id: int) -> reporting_schemas.Me
     approved_submission_ids = get_approved_submission_ids_subquery(db, survey_id)
 
     # Get photo responses with media analysis
-    photo_responses = db.query(survey_models.Response, media_models.Media).join(
-        media_models.Media, survey_models.Response.id == media_models.Media.response_id
+    photo_responses = db.query(survey.Response, media.Media).join(
+        media.Media, survey.Response.id == media.Media.response_id
     ).filter(
         and_(
-            survey_models.Response.submission_id.in_(approved_submission_ids),
-            survey_models.Response.question_type == 'photo',
-            survey_models.Response.photo_url.isnot(None),
-            media_models.Media.reporting_labels.isnot(None)
+            survey.Response.submission_id.in_(approved_submission_ids),
+            survey.Response.question_type == 'photo',
+            survey.Response.photo_url.isnot(None),
+            media.Media.reporting_labels.isnot(None)
         )
     ).all()
 
     # Get video responses with media analysis
-    video_responses = db.query(survey_models.Response, media_models.Media).join(
-        media_models.Media, survey_models.Response.id == media_models.Media.response_id
+    video_responses = db.query(survey.Response, media.Media).join(
+        media.Media, survey.Response.id == media.Media.response_id
     ).filter(
         and_(
-            survey_models.Response.submission_id.in_(approved_submission_ids),
-            survey_models.Response.question_type == 'video',
-            survey_models.Response.video_url.isnot(None),
-            media_models.Media.reporting_labels.isnot(None)
+            survey.Response.submission_id.in_(approved_submission_ids),
+            survey.Response.question_type == 'video',
+            survey.Response.video_url.isnot(None),
+            media.Media.reporting_labels.isnot(None)
         )
     ).all()
 
     # Process photo reporting labels using safe JSON parser
     photo_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
-    for response, media in photo_responses:
-        labels = safe_json_parse(media.reporting_labels, [])
+    for response, media_obj in photo_responses:
+        labels = safe_json_parse(media_obj.reporting_labels, [])
         for label in labels:
             photo_label_counts[label].add(response.submission_id)
 
     # Process video reporting labels using safe JSON parser
     video_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
-    for response, media in video_responses:
-        labels = safe_json_parse(media.reporting_labels, [])
+    for response, media_obj in video_responses:
+        labels = safe_json_parse(media_obj.reporting_labels, [])
         for label in labels:
             video_label_counts[label].add(response.submission_id)
 
@@ -218,29 +218,29 @@ def get_reporting_data(db: Session, survey_slug: str) -> Optional[reporting_sche
     """Get comprehensive reporting data for a survey"""
 
     # Get survey
-    survey = db.query(survey_models.Survey).filter(
-        survey_models.Survey.survey_slug == survey_slug
+    survey_obj = db.query(survey.Survey).filter(
+        survey.Survey.survey_slug == survey_slug
     ).first()
 
-    if not survey:
+    if not survey_obj:
         return None
 
     # Get total submission count
-    total_submissions = db.query(survey_models.Submission).filter(
-        survey_models.Submission.survey_id == survey.id
+    total_submissions = db.query(survey.Submission).filter(
+        survey.Submission.survey_id == survey_obj.id
     ).count()
 
     # Get completed and approved submission count
-    completed_approved_count = db.query(survey_models.Submission).filter(
+    completed_approved_count = db.query(survey.Submission).filter(
         and_(
-            survey_models.Submission.survey_id == survey.id,
-            survey_models.Submission.is_completed == True,
-            survey_models.Submission.is_approved == True
+            survey.Submission.survey_id == survey_obj.id,
+            survey.Submission.is_completed == True,
+            survey.Submission.is_approved == True
         )
     ).count()
 
     # Get or create report settings to get age ranges and question display names
-    settings = settings_crud.create_or_get_report_settings(db, survey.id)
+    settings = settings_crud.create_or_get_report_settings(db, survey_obj.id)
 
     # Build question display name mapping
     question_display_names = {}
@@ -249,24 +249,24 @@ def get_reporting_data(db: Session, survey_slug: str) -> Optional[reporting_sche
             question_display_names[q.question_id] = q.display_name
 
     # Get demographic data
-    demographics = get_demographic_data(db, survey.id, settings.age_ranges)
+    demographics = get_demographic_data(db, survey_obj.id, settings.age_ranges)
 
     # Get question response data
     question_responses = get_question_response_data(
         db,
-        survey.id,
-        survey.survey_flow,
+        survey_obj.id,
+        survey_obj.survey_flow,
         question_display_names
     )
 
     # Get media analysis data
-    media_analysis = get_media_analysis_data(db, survey.id)
+    media_analysis = get_media_analysis_data(db, survey_obj.id)
 
     return reporting_schemas.ReportingData(
         total_submissions=total_submissions,
         completed_approved_submissions=completed_approved_count,
-        survey_name=survey.name,
-        survey_slug=survey.survey_slug,
+        survey_name=survey_obj.name,
+        survey_slug=survey_obj.survey_slug,
         generated_at=datetime.now(),
         demographics=demographics,
         question_responses=question_responses,

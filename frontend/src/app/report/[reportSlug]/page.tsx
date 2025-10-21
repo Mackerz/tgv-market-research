@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import MediaGallery from '../../components/MediaGallery'
 import { apiClient, ApiError } from '@/lib/api'
+import { apiUrl } from '@/config/api'
 
 interface Submission {
   id: number

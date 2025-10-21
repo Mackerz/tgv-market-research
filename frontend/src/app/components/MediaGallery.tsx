@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { apiClient, ApiError } from '@/lib/api'
+import { apiUrl } from '@/config/api'
 
 interface MediaGalleryItem {
   id: number

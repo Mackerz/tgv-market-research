@@ -164,6 +164,11 @@ async def upload_photo(request: Request, survey_slug: str, file: UploadFile = Fi
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        logger.error(f"Photo upload failed: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="File upload failed")
 
 
@@ -187,4 +192,9 @@ async def upload_video(request: Request, survey_slug: str, file: UploadFile = Fi
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        logger.error(f"Video upload failed: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="File upload failed")

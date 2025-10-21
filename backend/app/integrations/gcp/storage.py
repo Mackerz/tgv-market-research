@@ -19,6 +19,9 @@ class GCPStorageManager:
             self.client = None
             self.photo_bucket = None
             self.video_bucket = None
+            self.photo_bucket_name = "simulated-photos"
+            self.video_bucket_name = "simulated-videos"
+            self.project_id = "simulated-project"
             return
 
         # Use secrets manager for configuration
