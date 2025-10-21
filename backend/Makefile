@@ -4,11 +4,8 @@
 POETRY := poetry
 PYTHON := $(POETRY) run python
 PYTEST := $(POETRY) run pytest
-BLACK := $(POETRY) run black
-ISORT := $(POETRY) run isort
+RUFF := $(POETRY) run ruff
 MYPY := $(POETRY) run mypy
-FLAKE8 := $(POETRY) run flake8
-PYLINT := $(POETRY) run pylint
 UVICORN := $(POETRY) run uvicorn
 
 # Docker variables
@@ -93,33 +90,30 @@ test-integration: ## Run only integration tests
 
 ##@ Code Quality
 
-format: ## Format code with black and isort
-	@echo "$(GREEN)Formatting code...$(NC)"
-	$(BLACK) $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
-	$(ISORT) $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
+format: ## Format code with ruff
+	@echo "$(GREEN)Formatting code with ruff...$(NC)"
+	$(RUFF) format $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
 	@echo "$(GREEN)✓ Code formatted$(NC)"
 
 format-check: ## Check if code is formatted correctly (no changes)
 	@echo "$(YELLOW)Checking code formatting...$(NC)"
-	$(BLACK) --check $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
-	$(ISORT) --check-only $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
+	$(RUFF) format --check $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
 	@echo "$(GREEN)✓ Code formatting is correct$(NC)"
 
-lint: ## Run all linters (flake8, pylint)
-	@echo "$(GREEN)Running linters...$(NC)"
-	@echo "$(YELLOW)→ Running flake8...$(NC)"
-	-$(FLAKE8) $(APP_DIR) $(TESTS_DIR)
-	@echo "$(YELLOW)→ Running pylint...$(NC)"
-	-$(PYLINT) $(APP_DIR)/**/*.py
+lint: ## Run ruff linter
+	@echo "$(GREEN)Running ruff linter...$(NC)"
+	$(RUFF) check $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
 	@echo "$(GREEN)✓ Linting complete$(NC)"
 
-lint-flake8: ## Run flake8 only
-	@echo "$(GREEN)Running flake8...$(NC)"
-	$(FLAKE8) $(APP_DIR) $(TESTS_DIR)
+lint-fix: ## Run ruff linter with auto-fix
+	@echo "$(GREEN)Running ruff linter with auto-fix...$(NC)"
+	$(RUFF) check --fix $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
+	@echo "$(GREEN)✓ Linting complete with fixes applied$(NC)"
 
-lint-pylint: ## Run pylint only
-	@echo "$(GREEN)Running pylint...$(NC)"
-	$(PYLINT) $(APP_DIR)/**/*.py
+lint-unsafe-fix: ## Run ruff linter with unsafe auto-fixes
+	@echo "$(YELLOW)Running ruff linter with unsafe auto-fixes...$(NC)"
+	$(RUFF) check --fix --unsafe-fixes $(APP_DIR) $(TESTS_DIR) $(SCRIPTS_DIR)
+	@echo "$(GREEN)✓ Linting complete with unsafe fixes applied$(NC)"
 
 type-check: ## Run mypy type checking
 	@echo "$(GREEN)Running type checks...$(NC)"
@@ -255,6 +249,7 @@ clean: ## Clean up generated files and caches
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name ".coverage" -delete 2>/dev/null || true
 	find . -type f -name "coverage.xml" -delete 2>/dev/null || true
@@ -278,6 +273,8 @@ show-env: ## Show environment information
 	@echo "$(GREEN)Environment Information:$(NC)"
 	@echo "Poetry version: $$($(POETRY) --version)"
 	@echo "Python version: $$($(PYTHON) --version)"
+	@echo "Ruff version: $$($(RUFF) --version)"
+	@echo "Mypy version: $$($(MYPY) --version)"
 	@echo "Working directory: $$(pwd)"
 	@echo "Docker available: $$(docker --version 2>/dev/null || echo 'Not installed')"
 
@@ -323,6 +320,9 @@ info: ## Show project information
 	@echo "  - make dev           Start development server"
 	@echo "  - make test          Run tests"
 	@echo "  - make quality       Run all quality checks"
+	@echo "  - make lint-fix      Run linter with auto-fix"
+	@echo "  - make format        Format code"
+	@echo "  - make type-check    Run type checking"
 	@echo "  - make docker-build  Build Docker image"
 	@echo ""
 	@echo "Run 'make help' for all available commands"
