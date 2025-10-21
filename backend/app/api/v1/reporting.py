@@ -1,6 +1,6 @@
 """Reporting API endpoints"""
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import and_
 from typing import Optional
 
@@ -39,7 +39,10 @@ def get_report_submissions(
     survey = get_survey_or_404(survey_slug, db)
 
     # Build query - only include completed submissions
-    query = db.query(survey_models.Submission).filter(
+    # Use selectinload to prevent N+1 queries when accessing responses
+    query = db.query(survey_models.Submission).options(
+        selectinload(survey_models.Submission.responses)
+    ).filter(
         survey_models.Submission.survey_id == survey.id,
         survey_models.Submission.is_completed == True
     )

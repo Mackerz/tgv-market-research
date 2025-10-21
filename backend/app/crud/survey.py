@@ -1,5 +1,5 @@
 """Survey, Submission, and Response CRUD operations using CRUDBase"""
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import desc
 from typing import List, Optional
 import uuid
@@ -94,9 +94,15 @@ class CRUDSubmission(CRUDBase[Submission, SubmissionCreate, SubmissionUpdate]):
     def get_multi_by_survey(
         self, db: Session, *, survey_id: int, skip: int = 0, limit: int = 100
     ) -> List[Submission]:
-        """Get submissions by survey"""
+        """
+        Get submissions by survey.
+
+        Uses selectinload to eagerly load responses relationship
+        to prevent N+1 queries.
+        """
         return (
             db.query(self.model)
+            .options(selectinload(self.model.responses))
             .filter(self.model.survey_id == survey_id)
             .offset(skip)
             .limit(limit)
@@ -150,9 +156,15 @@ class CRUDResponse(CRUDBase[Response, ResponseCreate, ResponseUpdate]):
     def get_multi_by_submission(
         self, db: Session, *, submission_id: int
     ) -> List[Response]:
-        """Get responses by submission, ordered by responded_at"""
+        """
+        Get responses by submission, ordered by responded_at.
+
+        Uses selectinload to eagerly load media_analysis relationship
+        to prevent N+1 queries.
+        """
         return (
             db.query(self.model)
+            .options(selectinload(self.model.media_analysis))
             .filter(self.model.submission_id == submission_id)
             .order_by(self.model.responded_at)
             .all()
