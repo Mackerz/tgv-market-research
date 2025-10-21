@@ -18,11 +18,27 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/fastapi_db
+      DB_HOST: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fastapi_db
+      # GCP Configuration
+      GCP_AI_ENABLED: "true"
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID:-tmg-market-research}
+      GCP_STORAGE_BUCKET_PHOTOS: ${GCP_STORAGE_BUCKET_PHOTOS:-tmg-market-research-photos}
+      GCP_STORAGE_BUCKET_VIDEOS: ${GCP_STORAGE_BUCKET_VIDEOS:-tmg-market-research-videos}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/gcp-credentials.json
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # CORS Configuration
+      ALLOWED_ORIGINS: "http://localhost:3000"
     depends_on:
-      - db
+      db:
+        condition: service_started
     volumes:
       - ./backend:/app
+      - ./backend/tmg-market-research-fd13d009581b.json:/app/gcp-credentials.json:ro
     restart: unless-stopped
+    entrypoint: ["/app/docker-entrypoint.sh"]
 
   frontend:
     build: ./frontend
