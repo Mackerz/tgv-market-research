@@ -1,19 +1,37 @@
 """
 Authentication and Authorization
 
-Implements API key-based authentication for admin endpoints.
+Implements two authentication methods:
+1. API key-based authentication for admin endpoints and programmatic access
+2. Session-based authentication with username/password and Google SSO for web users
+
 Survey response endpoints remain public for easy user access.
 """
 
-from fastapi import Security, HTTPException, status
+from fastapi import Security, HTTPException, status, Request, Depends, Cookie
 from fastapi.security import APIKeyHeader
+from sqlalchemy.orm import Session
+import bcrypt
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
 import os
 import secrets
-from typing import Optional
+from typing import Optional, Annotated
+from app.core.database import get_db
+from app.models.user import User
 
 # API Key header name
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+# JWT settings
+SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(32))
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+
+# Google OAuth settings
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 # Get API key from environment (or Secret Manager in production)
 def get_api_key_from_config() -> Optional[str]:
@@ -109,3 +127,170 @@ RequireAPIKey = Security(verify_api_key)
 def is_auth_enabled() -> bool:
     """Check if authentication is enabled."""
     return get_api_key_from_config() is not None
+
+
+# ============================================================================
+# Password Authentication Functions
+# ============================================================================
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash using bcrypt."""
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode('utf-8'),
+            hashed_password.encode('utf-8')
+        )
+    except Exception:
+        return False
+
+
+def get_password_hash(password: str) -> str:
+    """Hash a password for storage using bcrypt."""
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Create a JWT access token."""
+    to_encode = data.copy()
+
+    # Ensure sub (subject) is a string as per JWT spec
+    if "sub" in to_encode and not isinstance(to_encode["sub"], str):
+        to_encode["sub"] = str(to_encode["sub"])
+
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
+    """Authenticate a user by username and password."""
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        return None
+    if not user.hashed_password:
+        return None  # Google SSO user without password
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+
+async def get_current_user_from_token(
+    token: Optional[str] = Cookie(None, alias="access_token"),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """Get the current user from JWT token in cookie."""
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id_str: str = payload.get("sub")
+        if user_id_str is None:
+            return None
+        # Convert string back to int
+        user_id = int(user_id_str)
+    except (JWTError, ValueError, TypeError):
+        return None
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return user
+
+
+async def get_current_user(
+    request: Request,
+    api_key: Optional[str] = Security(api_key_header),
+    token_user: Optional[User] = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    Get the current user from either API key or session token.
+
+    Returns None if not authenticated (for optional auth).
+    For required auth, use require_auth or require_admin.
+    """
+    # Check API key first (for backward compatibility)
+    if api_key:
+        expected_api_key = get_api_key_from_config()
+        if expected_api_key and secrets.compare_digest(api_key, expected_api_key):
+            # API key is valid - return a special "API" user or None
+            # For now, we'll just return None since API key auth doesn't have a user
+            return None
+
+    # Check session token
+    if token_user:
+        return token_user
+
+    return None
+
+
+async def require_auth(
+    current_user: Optional[User] = Depends(get_current_user),
+    api_key: Optional[str] = Security(api_key_header)
+) -> User:
+    """
+    Require authentication via session token or API key.
+    Raises 401 if not authenticated.
+    """
+    # Allow API key authentication
+    if api_key:
+        expected_api_key = get_api_key_from_config()
+        environment = os.getenv("ENVIRONMENT", "development")
+
+        if not expected_api_key and environment != "production":
+            # Dev mode - create a fake admin user
+            fake_user = User(
+                id=0,
+                username="dev-mode",
+                email="dev@example.com",
+                is_admin=True,
+                is_active=True
+            )
+            return fake_user
+
+        if expected_api_key and secrets.compare_digest(api_key, expected_api_key):
+            # Valid API key - create a fake admin user
+            fake_user = User(
+                id=0,
+                username="api-key",
+                email="api@example.com",
+                is_admin=True,
+                is_active=True
+            )
+            return fake_user
+
+    # Require session authentication
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated. Please log in.",
+        )
+
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive",
+        )
+
+    return current_user
+
+
+async def require_admin(
+    current_user: User = Depends(require_auth)
+) -> User:
+    """
+    Require admin privileges.
+    Raises 403 if user is not an admin.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
+
+    return current_user

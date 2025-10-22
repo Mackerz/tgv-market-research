@@ -131,3 +131,59 @@ def read_submission_responses(submission_id: int, db: Session = Depends(get_db))
     """Get all responses for a submission"""
     responses = survey_crud.get_responses_by_submission(db, submission_id=submission_id)
     return responses
+
+
+@router.get("/submissions/{submission_id}/next-question")
+@limiter.limit(get_rate_limit("next_question"))
+def get_next_question(
+    request: Request,
+    submission_id: int,
+    current_question_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get the next question based on routing logic with security and performance improvements.
+
+    Security improvements:
+    - Rate limiting (100/minute)
+    - Question ID validation
+    - Input validation
+    - Improved error handling
+
+    Performance improvements:
+    - O(n+m) response mapping instead of O(n*m)
+    - Efficient index lookups
+    - Service layer with proper abstraction
+
+    Returns routing information:
+    {
+        "action": "goto_question" | "end_survey" | "continue",
+        "next_question_id": str (if not end_survey),
+        "question_index": int (if not end_survey),
+        "question": {...} (full question object if not end_survey)
+    }
+    """
+    from app.services.routing_service import RoutingService
+
+    # Use service layer (Dependency Inversion Principle)
+    routing_service = RoutingService(db)
+
+    try:
+        routing_info = routing_service.get_next_question_for_submission(
+            submission_id,
+            current_question_id
+        )
+        return routing_info
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Log unexpected errors but don't expose internals
+        logger.error(
+            f"Unexpected error in routing for submission {submission_id}: {e}",
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while determining the next question"
+        )

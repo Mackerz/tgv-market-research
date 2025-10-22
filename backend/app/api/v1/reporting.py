@@ -6,6 +6,7 @@ from typing import Optional
 
 from app.core.database import get_db
 from app.models import survey as survey_models
+from app.models.user import User
 from app.schemas import survey as survey_schemas
 from app.schemas import reporting as reporting_schemas
 from app.schemas import media as media_schemas
@@ -14,7 +15,7 @@ from app.crud import reporting as reporting_crud
 from app.crud import media as media_crud
 from app.dependencies import get_survey_or_404, get_submission_for_survey_or_404
 from app.utils.queries import get_submission_counts
-from app.core.auth import RequireAPIKey
+from app.core.auth import require_admin
 
 router = APIRouter(prefix="/api/reports", tags=["reporting"])
 
@@ -31,9 +32,10 @@ def get_report_submissions(
     sort_order: str = "desc",
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
-    """Get submissions for reporting with filtering and sorting"""
+    """Get submissions for reporting with filtering and sorting (ADMIN ONLY)"""
 
     # Get survey using dependency helper
     survey = get_survey_or_404(survey_slug, db)
@@ -87,9 +89,10 @@ def get_report_submissions(
 def get_report_submission_detail(
     survey_slug: str,
     submission_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
-    """Get detailed submission with responses and media analysis for reporting"""
+    """Get detailed submission with responses and media analysis for reporting (ADMIN ONLY)"""
     # Get survey and submission using dependency helper
     survey, submission = get_submission_for_survey_or_404(survey_slug, submission_id, db)
 
@@ -144,9 +147,9 @@ def approve_submission(
     survey_slug: str,
     submission_id: int,
     db: Session = Depends(get_db),
-    api_key: str = RequireAPIKey
+    current_user: User = Depends(require_admin)
 ):
-    """Approve a submission (ADMIN ONLY - Requires: X-API-Key header)"""
+    """Approve a submission (ADMIN ONLY)"""
     # Get survey and submission using dependency helper
     survey, submission = get_submission_for_survey_or_404(survey_slug, submission_id, db)
 
@@ -165,9 +168,9 @@ def reject_submission(
     survey_slug: str,
     submission_id: int,
     db: Session = Depends(get_db),
-    api_key: str = RequireAPIKey
+    current_user: User = Depends(require_admin)
 ):
-    """Reject a submission (ADMIN ONLY - Requires: X-API-Key header)"""
+    """Reject a submission (ADMIN ONLY)"""
     # Get survey and submission using dependency helper
     survey, submission = get_submission_for_survey_or_404(survey_slug, submission_id, db)
 
@@ -182,8 +185,12 @@ def reject_submission(
 
 
 @router.get("/{survey_slug}/data", response_model=reporting_schemas.ReportingData)
-def get_reporting_data(survey_slug: str, db: Session = Depends(get_db)):
-    """Get comprehensive reporting data including demographics and question responses"""
+def get_reporting_data(
+    survey_slug: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """Get comprehensive reporting data including demographics and question responses (ADMIN ONLY)"""
     reporting_data = reporting_crud.get_reporting_data(db, survey_slug)
 
     if not reporting_data:
@@ -200,9 +207,10 @@ def get_media_gallery(
     genders: Optional[str] = None,
     age_min: Optional[int] = None,
     age_max: Optional[int] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
-    """Get media gallery for a survey with optional filtering"""
+    """Get media gallery for a survey with optional filtering (ADMIN ONLY)"""
     # Parse comma-separated filter parameters
     labels_list = labels.split(',') if labels else None
     regions_list = regions.split(',') if regions else None

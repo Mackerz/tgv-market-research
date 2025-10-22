@@ -14,6 +14,11 @@ export type {
   ResponseCreate,
   SurveyProgress,
   MediaAnalysis,
+  NextQuestionResponse,
+  ConditionOperator,
+  RoutingAction,
+  RoutingCondition,
+  RoutingRule,
 } from './survey';
 
 // Reporting types

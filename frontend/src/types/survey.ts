@@ -20,9 +20,43 @@ export interface SurveyQuestion {
   question_type: QuestionType;
   required: boolean;
   options?: string[];
+  routing_rules?: RoutingRule[];
 }
 
 export type QuestionType = 'free_text' | 'single' | 'multi' | 'photo' | 'video';
+
+export type ConditionOperator =
+  | 'equals'
+  | 'not_equals'
+  | 'contains'
+  | 'not_contains'
+  | 'contains_any'
+  | 'contains_all'
+  | 'greater_than'
+  | 'less_than'
+  | 'is_answered'
+  | 'is_not_answered';
+
+export type RoutingAction = 'goto_question' | 'end_survey' | 'continue';
+
+export interface RoutingCondition {
+  question_id: string;
+  operator: ConditionOperator;
+  value?: string | string[] | number;
+}
+
+export interface RoutingRule {
+  conditions: RoutingCondition[];
+  action: RoutingAction;
+  target_question_id?: string;
+}
+
+export interface NextQuestionResponse {
+  action: RoutingAction;
+  next_question_id?: string;
+  question_index?: number;
+  question?: SurveyQuestion;
+}
 
 export interface Submission {
   id: number;

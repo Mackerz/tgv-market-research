@@ -12,6 +12,7 @@ import type {
   ResponseCreate,
   SurveyProgress,
   FileUploadResponse,
+  NextQuestionResponse,
 } from '@/types';
 
 export const surveyService = {
@@ -105,5 +106,15 @@ export const surveyService = {
     const formData = new FormData();
     formData.append('file', file);
     return apiClient.upload<FileUploadResponse>(`/api/surveys/${slug}/upload/video`, formData);
+  },
+
+  /**
+   * Get next question based on routing logic
+   */
+  getNextQuestion: (submissionId: number, currentQuestionId: string) => {
+    return apiClient.get<NextQuestionResponse>(
+      `/api/submissions/${submissionId}/next-question`,
+      { params: { current_question_id: currentQuestionId } }
+    );
   },
 };

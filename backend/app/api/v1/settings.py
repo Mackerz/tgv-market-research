@@ -4,10 +4,12 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.models.user import User
 from app.schemas import settings as settings_schemas
 from app.crud import settings as settings_crud
 from app.crud import survey as survey_crud
 from app.dependencies import get_survey_or_404
+from app.core.auth import require_admin
 
 router = APIRouter(prefix="/api/reports", tags=["settings"])
 
@@ -17,8 +19,12 @@ router = APIRouter(prefix="/api/reports", tags=["settings"])
 # =============================================================================
 
 @router.get("/{survey_slug}/settings")
-def get_report_settings(survey_slug: str, db: Session = Depends(get_db)):
-    """Get report settings for a survey"""
+def get_report_settings(
+    survey_slug: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """Get report settings for a survey (ADMIN ONLY)"""
     # Get survey using dependency helper
     survey = get_survey_or_404(survey_slug, db)
 
@@ -34,9 +40,10 @@ def get_report_settings(survey_slug: str, db: Session = Depends(get_db)):
 def update_age_ranges(
     survey_slug: str,
     age_ranges_update: List[settings_schemas.AgeRange],
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
-    """Update age ranges for a survey"""
+    """Update age ranges for a survey (ADMIN ONLY)"""
     # Get survey using dependency helper
     survey = get_survey_or_404(survey_slug, db)
 
@@ -56,9 +63,10 @@ def update_age_ranges(
 def update_question_display_names(
     survey_slug: str,
     updates: settings_schemas.BulkQuestionDisplayNameUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
-    """Bulk update question display names for a survey"""
+    """Bulk update question display names for a survey (ADMIN ONLY)"""
     # Get survey using dependency helper
     survey = get_survey_or_404(survey_slug, db)
 

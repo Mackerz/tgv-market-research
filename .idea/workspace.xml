@@ -5,24 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="Refactor">
-      <change afterPath="$PROJECT_DIR$/backend/create_sample_survey_local.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/docker-entrypoint.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/start.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CODE_REVIEW_UPDATED.md" beforeDir="false" afterPath="$PROJECT_DIR$/claude_docs/CODE_REVIEW_UPDATED.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/COMPREHENSIVE_CODE_REVIEW.md" beforeDir="false" afterPath="$PROJECT_DIR$/claude_docs/COMPREHENSIVE_CODE_REVIEW.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/reporting.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/reporting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/router.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/router.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/crud/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/crud/survey.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/utils/charts.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/utils/charts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/tests/api/test_surveys_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/api/test_surveys_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/tests/test_chart_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_chart_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/tests/test_crud_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_crud_base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/tests/test_dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_dependencies.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/tests/test_json_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_json_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/tests/test_logging_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_logging_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/tests/test_query_helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/test_query_helpers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/core/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/core/auth.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/core/rate_limits.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/core/rate_limits.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/crud/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/crud/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/models/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/survey.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/models/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/schemas/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/survey.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/schemas/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/create_sample_survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/create_sample_survey.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/types/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/types/survey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/types/survey.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,22 +50,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.create_sample_survey.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/mackers/git_repos/llm-prompt-lib",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "ts.external.directory.path": "/home/mackers/tmg/marketResearch/frontend/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.create_sample_survey.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/mackers/git_repos/llm-prompt-lib&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/home/mackers/tmg/marketResearch/frontend/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/claude_docs" />
@@ -140,6 +141,7 @@
       <workItem from="1759482901171" duration="2335000" />
       <workItem from="1759847874343" duration="1314000" />
       <workItem from="1760387136438" duration="32145000" />
+      <workItem from="1761163003405" duration="4460000" />
     </task>
     <task id="LOCAL-00001" summary="initial system">
       <option name="closed" value="true" />

@@ -25,6 +25,9 @@ RATE_LIMITS = {
     # Response creation - moderate
     "response_create": "50/minute",  # Max 50 responses per minute
 
+    # Routing/next question - moderate (called once per question)
+    "next_question": "100/minute",  # Max 100 routing requests per minute
+
     # Report/analytics - database intensive
     "reporting": "30/minute",  # Max 30 report requests per minute
 

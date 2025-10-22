@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { surveyService } from '@/lib/api';
-import type { Survey, SurveyQuestion, Submission, Response, ResponseCreate, SurveyProgress } from '@/types';
+import type { Survey, SurveyQuestion, Submission, Response, ResponseCreate, SurveyProgress, NextQuestionResponse } from '@/types';
 import { useApi } from './useApi';
 
 interface UseSurveyOptions {
@@ -124,19 +124,6 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
     }
   }, [submission]);
 
-  // Navigation
-  const nextQuestion = useCallback(() => {
-    if (survey && currentIndex < survey.survey_flow.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    }
-  }, [survey, currentIndex]);
-
-  const previousQuestion = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-    }
-  }, [currentIndex]);
-
   // Complete submission
   const completeAndSubmit = useCallback(async () => {
     if (!submission) {
@@ -160,6 +147,54 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
       setResponseLoading(false);
     }
   }, [submission, onComplete]);
+
+  // Navigation with routing logic
+  const nextQuestion = useCallback(async () => {
+    if (!survey || !submission || !currentQuestion) return;
+
+    try {
+      setResponseLoading(true);
+
+      // Check if current question has routing rules
+      if (currentQuestion.routing_rules && currentQuestion.routing_rules.length > 0) {
+        // Use backend routing logic
+        const routingResponse = await surveyService.getNextQuestion(
+          submission.id,
+          currentQuestion.id
+        );
+
+        if (routingResponse.action === 'end_survey') {
+          // Survey ended early due to routing rule
+          await completeAndSubmit();
+          return;
+        }
+
+        // Navigate to the routed question
+        if (routingResponse.question_index !== undefined) {
+          setCurrentIndex(routingResponse.question_index);
+        }
+      } else {
+        // No routing rules - use sequential navigation
+        if (currentIndex < survey.survey_flow.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      }
+    } catch (err) {
+      console.error('Error in routing logic:', err);
+      // Fallback to sequential navigation
+      if (currentIndex < survey.survey_flow.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      }
+    } finally {
+      setResponseLoading(false);
+    }
+  }, [survey, submission, currentQuestion, currentIndex, completeAndSubmit]);
+
+  const previousQuestion = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  }, [currentIndex]);
 
   // Refetch progress
   const refetchProgress = useCallback(async () => {

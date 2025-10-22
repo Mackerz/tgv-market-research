@@ -27,6 +27,18 @@ def create_sample_survey():
                     "Weekly",
                     "Monthly",
                     "Occasionally"
+                ],
+                "routing_rules": [
+                    {
+                        "conditions": [
+                            {
+                                "question_id": "satisfaction",
+                                "operator": "equals",
+                                "value": "Occasionally"
+                            }
+                        ],
+                        "action": "end_survey"
+                    }
                 ]
             },
             {
@@ -147,8 +159,9 @@ if __name__ == "__main__":
         print(f"Visit: http://localhost:3000/survey/{survey['survey_slug']}")
         print(f"\n💡 The survey includes:")
         print("  • Personal information form (email, phone, region, DOB, gender)")
-        print("  • Single choice question (satisfaction rating)")
-        print("  • Multiple choice question (features used)")
+        print("  • Single choice question (Monster Energy consumption frequency)")
+        print("    ⚠️ SCREENING: Selecting 'Occasionally' will end the survey")
+        print("  • Multiple choice question (favorite flavors)")
         print("  • Free text question (detailed feedback)")
         print("  • Photo upload (optional screenshot)")
         print("  • Video upload (optional testimonial)")

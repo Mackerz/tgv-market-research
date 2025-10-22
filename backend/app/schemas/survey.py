@@ -32,6 +32,49 @@ class Region(str, Enum):
     DK = "DK"  # Denmark
     FI = "FI"  # Finland
 
+class ConditionOperator(str, Enum):
+    EQUALS = "equals"  # Single choice equals specific value
+    NOT_EQUALS = "not_equals"  # Single choice does not equal value
+    CONTAINS = "contains"  # Multi choice contains specific option
+    NOT_CONTAINS = "not_contains"  # Multi choice does not contain option
+    CONTAINS_ANY = "contains_any"  # Multi choice contains any of the values
+    CONTAINS_ALL = "contains_all"  # Multi choice contains all of the values
+    GREATER_THAN = "greater_than"  # Numeric comparison (for parsed values)
+    LESS_THAN = "less_than"  # Numeric comparison
+    IS_ANSWERED = "is_answered"  # Question was answered
+    IS_NOT_ANSWERED = "is_not_answered"  # Question was not answered
+
+class RoutingAction(str, Enum):
+    GOTO_QUESTION = "goto_question"  # Go to specific question by ID
+    END_SURVEY = "end_survey"  # End survey early
+    CONTINUE = "continue"  # Continue to next question in sequence
+
+# Routing condition schema
+class RoutingCondition(BaseModel):
+    question_id: str  # The question ID to check the answer of
+    operator: ConditionOperator
+    value: Optional[Union[str, List[str], int, float]] = None  # The value(s) to compare against
+
+    class Config:
+        use_enum_values = True
+
+# Routing rule schema
+class RoutingRule(BaseModel):
+    conditions: List[RoutingCondition]  # All conditions must be true (AND logic)
+    action: RoutingAction
+    target_question_id: Optional[str] = None  # Required if action is goto_question
+
+    @field_validator('target_question_id')
+    @classmethod
+    def validate_target_question_id(cls, v, info):
+        action = info.data.get('action')
+        if action == RoutingAction.GOTO_QUESTION and not v:
+            raise ValueError('target_question_id is required when action is goto_question')
+        return v
+
+    class Config:
+        use_enum_values = True
+
 # Survey Flow Question Schema
 class SurveyQuestion(BaseModel):
     id: str
@@ -39,6 +82,7 @@ class SurveyQuestion(BaseModel):
     question_type: QuestionType
     required: bool = True
     options: Optional[List[str]] = None  # For single/multi choice questions
+    routing_rules: Optional[List[RoutingRule]] = None  # Conditional routing logic
 
     @field_validator('options')
     @classmethod
@@ -46,6 +90,19 @@ class SurveyQuestion(BaseModel):
         question_type = info.data.get('question_type')
         if question_type in [QuestionType.SINGLE, QuestionType.MULTI] and not v:
             raise ValueError('Options are required for single and multi choice questions')
+        return v
+
+    @field_validator('routing_rules')
+    @classmethod
+    def validate_routing_rules(cls, v, info):
+        if v is None:
+            return v
+
+        # Ensure at most one END_SURVEY rule exists
+        end_survey_count = sum(1 for rule in v if rule.action == RoutingAction.END_SURVEY)
+        if end_survey_count > 1:
+            raise ValueError('Only one END_SURVEY routing rule is allowed per question')
+
         return v
 
 # Survey Schemas
@@ -136,6 +193,7 @@ class Submission(SubmissionBase):
 # Response Schemas
 class ResponseBase(BaseModel):
     submission_id: int
+    question_id: Optional[str] = None  # Question ID from survey_flow (for efficient routing)
     question: str
     question_type: QuestionType
 
@@ -162,6 +220,7 @@ class ResponseAnswer(BaseModel):
         return v
 
 class ResponseCreateRequest(ResponseAnswer):
+    question_id: Optional[str] = None  # Optional for backward compatibility
     question: str
     question_type: QuestionType
 

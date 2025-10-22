@@ -7,7 +7,7 @@ import MultipleChoiceQuestion from "./questions/MultipleChoiceQuestion";
 import PhotoQuestion from "./questions/PhotoQuestion";
 import VideoQuestion from "./questions/VideoQuestion";
 import { apiClient, ApiError } from "@/lib/api";
-import type { SurveyQuestion } from "@/types/survey";
+import type { SurveyQuestion, NextQuestionResponse } from "@/types/survey";
 
 interface Survey {
   id: number;
@@ -54,18 +54,47 @@ export default function QuestionComponent({
     setError('');
 
     try {
+      // Submit the response
       await apiClient.post(`/api/submissions/${submissionId}/responses`, {
         question: currentQuestion.question,
         question_type: currentQuestion.question_type,
         ...answerData
       });
 
-      // Move to next question or complete survey
-      if (isLastQuestion) {
-        onSurveyComplete();
+      // Check if question has routing rules
+      if (currentQuestion.routing_rules && currentQuestion.routing_rules.length > 0) {
+        // Use routing logic to determine next question
+        const routingResponse = await apiClient.get<NextQuestionResponse>(
+          `/api/submissions/${submissionId}/next-question`,
+          { params: { current_question_id: currentQuestion.id } }
+        );
+
+        if (routingResponse.action === 'end_survey') {
+          // Survey ended early due to routing rule
+          onSurveyComplete();
+          return;
+        }
+
+        // Navigate to the routed question
+        if (routingResponse.question_index !== undefined) {
+          setCurrentQuestionIndex(routingResponse.question_index);
+
+          // Check if this is the last question after routing
+          if (routingResponse.question_index === survey.survey_flow.length - 1) {
+            // Still call onQuestionComplete for consistency
+            onQuestionComplete();
+          } else {
+            onQuestionComplete();
+          }
+        }
       } else {
-        setCurrentQuestionIndex(prev => prev + 1);
-        onQuestionComplete();
+        // No routing rules - use sequential navigation
+        if (isLastQuestion) {
+          onSurveyComplete();
+        } else {
+          setCurrentQuestionIndex(prev => prev + 1);
+          onQuestionComplete();
+        }
       }
     } catch (error) {
       console.error('Error submitting answer:', error);

@@ -5,6 +5,7 @@ from typing import List, Optional
 from app.crud.base import CRUDBase
 from app.models.user import User, Post
 from app.schemas.user import UserCreate, UserUpdate, PostCreate, PostUpdate
+from app.core.auth import get_password_hash
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
@@ -17,6 +18,39 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get_by_username(self, db: Session, username: str) -> Optional[User]:
         """Get user by username"""
         return db.query(self.model).filter(self.model.username == username).first()
+
+    def get_by_google_id(self, db: Session, google_id: str) -> Optional[User]:
+        """Get user by Google ID"""
+        return db.query(self.model).filter(self.model.google_id == google_id).first()
+
+    def create(self, db: Session, *, obj_in: UserCreate) -> User:
+        """Create user with hashed password"""
+        obj_in_data = obj_in.model_dump()
+        password = obj_in_data.pop("password", None)
+        db_obj = User(**obj_in_data)
+        if password:
+            db_obj.hashed_password = get_password_hash(password)
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
+    def create_google_user(
+        self, db: Session, *, email: str, username: str, full_name: str, google_id: str
+    ) -> User:
+        """Create user from Google SSO"""
+        db_obj = User(
+            email=email,
+            username=username,
+            full_name=full_name,
+            google_id=google_id,
+            is_active=True,
+            is_admin=False,
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
 
 
 class CRUDPost(CRUDBase[Post, PostCreate, PostUpdate]):

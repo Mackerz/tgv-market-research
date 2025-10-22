@@ -74,6 +74,7 @@ class Response(Base):
     submission_id = Column(BigIntegerType, ForeignKey("submissions.id"), nullable=False)
 
     # Question information
+    question_id = Column(String, nullable=True)  # Question ID from survey_flow (for routing)
     question = Column(Text, nullable=False)
     question_type = Column(String, nullable=False)  # "free_text", "single", "multi", "photo", "video"
 

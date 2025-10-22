@@ -9,22 +9,37 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = None
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
+    is_admin: Optional[bool] = None
 
 class User(UserBase):
     id: int
     is_active: bool
+    is_admin: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+# Authentication schemas
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class GoogleLoginRequest(BaseModel):
+    credential: str  # Google OAuth credential token
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: User
 
 class PostBase(BaseModel):
     title: str
