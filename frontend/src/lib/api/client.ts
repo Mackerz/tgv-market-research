@@ -64,6 +64,21 @@ class ApiClient {
   }
 
   /**
+   * Make a PATCH request
+   */
+  async patch<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...config,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+      headers: {
+        'Content-Type': 'application/json',
+        ...config?.headers,
+      },
+    });
+  }
+
+  /**
    * Make a DELETE request
    */
   async delete<T>(endpoint: string, config?: RequestConfig): Promise<T> {

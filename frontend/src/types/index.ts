@@ -8,6 +8,8 @@ export type {
   Survey,
   SurveyQuestion,
   QuestionType,
+  QuestionMedia,
+  QuestionMediaType,
   Submission,
   SubmissionCreate,
   Response,

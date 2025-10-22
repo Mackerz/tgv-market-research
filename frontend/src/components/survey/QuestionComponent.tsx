@@ -6,8 +6,10 @@ import SingleChoiceQuestion from "./questions/SingleChoiceQuestion";
 import MultipleChoiceQuestion from "./questions/MultipleChoiceQuestion";
 import PhotoQuestion from "./questions/PhotoQuestion";
 import VideoQuestion from "./questions/VideoQuestion";
+import QuestionMedia from "./QuestionMedia";
+import QuestionMediaGallery from "./QuestionMediaGallery";
 import { apiClient, ApiError } from "@/lib/api";
-import type { SurveyQuestion, NextQuestionResponse } from "@/types/survey";
+import type { SurveyQuestion, NextQuestionResponse, QuestionMedia as QuestionMediaType } from "@/types/survey";
 
 interface Survey {
   id: number;
@@ -176,6 +178,22 @@ export default function QuestionComponent({
           {currentQuestion.required ? 'This question is required.' : 'This question is optional.'}
         </p>
       </div>
+
+      {/* Question Media (Photo or Video) */}
+      {currentQuestion.media && currentQuestion.media.length > 0 ? (
+        // New array format
+        <QuestionMediaGallery
+          mediaItems={currentQuestion.media}
+          altText={currentQuestion.question}
+        />
+      ) : currentQuestion.media_url && currentQuestion.media_type ? (
+        // Legacy single media format (backward compatibility)
+        <QuestionMedia
+          mediaUrl={currentQuestion.media_url}
+          mediaType={currentQuestion.media_type}
+          altText={currentQuestion.question}
+        />
+      ) : null}
 
       {/* Error Display */}
       {error && (

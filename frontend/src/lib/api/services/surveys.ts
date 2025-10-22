@@ -117,4 +117,11 @@ export const surveyService = {
       { params: { current_question_id: currentQuestionId } }
     );
   },
+
+  /**
+   * Toggle survey active status (ADMIN ONLY)
+   */
+  toggleSurveyStatus: (surveyId: number) => {
+    return apiClient.patch<Survey>(`/api/surveys/${surveyId}/toggle-status`);
+  },
 };

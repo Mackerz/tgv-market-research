@@ -128,6 +128,34 @@ def update_survey(
     return db_survey
 
 
+@router.patch("/surveys/{survey_id}/toggle-status", response_model=survey_schemas.Survey)
+def toggle_survey_status(
+    survey_id: int,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
+    """
+    Toggle survey active status (ADMIN ONLY - Requires: X-API-Key header)
+
+    This is a convenience endpoint that toggles the is_active field.
+    Returns the updated survey with the new status.
+    """
+    # Get current survey
+    db_survey = get_survey_by_id_or_404(survey_id, db)
+
+    # Toggle is_active
+    updated_survey = survey_crud.update_survey(
+        db=db,
+        survey_id=survey_id,
+        survey_data=survey_schemas.SurveyUpdate(is_active=not db_survey.is_active)
+    )
+
+    if updated_survey is None:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    return updated_survey
+
+
 @router.delete("/surveys/{survey_id}")
 def delete_survey(
     survey_id: int,

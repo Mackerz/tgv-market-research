@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
 import { apiUrl } from '@/config/api'
+import { surveyService } from '@/lib/api'
 
 interface Survey {
   id: number
@@ -69,6 +70,21 @@ export default function SurveysListPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     fetchSurveys()
+  }
+
+  const handleToggleStatus = async (surveyId: number, currentStatus: boolean) => {
+    if (!confirm(`Are you sure you want to ${currentStatus ? 'disable' : 'enable'} this survey?`)) {
+      return
+    }
+
+    try {
+      await surveyService.toggleSurveyStatus(surveyId)
+      // Refresh the survey list
+      fetchSurveys()
+    } catch (err) {
+      console.error('Error toggling survey status:', err)
+      alert('Failed to update survey status. Please try again.')
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -229,15 +245,30 @@ export default function SurveysListPage() {
                       <div className="text-sm text-gray-900">{formatDate(survey.created_at)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {survey.is_active ? (
-                        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                          Inactive
-                        </span>
-                      )}
+                      <div className="flex items-center space-x-3">
+                        {survey.is_active ? (
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            Inactive
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleToggleStatus(survey.id, survey.is_active)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                            survey.is_active ? 'bg-green-600' : 'bg-gray-300'
+                          }`}
+                          title={survey.is_active ? 'Click to disable survey' : 'Click to enable survey'}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              survey.is_active ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                       <Link

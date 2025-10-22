@@ -75,6 +75,20 @@ class RoutingRule(BaseModel):
     class Config:
         use_enum_values = True
 
+# Media type for questions
+class QuestionMediaType(str, Enum):
+    PHOTO = "photo"
+    VIDEO = "video"
+
+# Media item for questions
+class QuestionMedia(BaseModel):
+    url: str  # GCP bucket URL
+    type: QuestionMediaType  # photo or video
+    caption: Optional[str] = None  # Optional caption for the media
+
+    class Config:
+        use_enum_values = True
+
 # Survey Flow Question Schema
 class SurveyQuestion(BaseModel):
     id: str
@@ -83,6 +97,11 @@ class SurveyQuestion(BaseModel):
     required: bool = True
     options: Optional[List[str]] = None  # For single/multi choice questions
     routing_rules: Optional[List[RoutingRule]] = None  # Conditional routing logic
+    media: Optional[List[QuestionMedia]] = None  # List of photos/videos to display with question
+
+    # DEPRECATED: Legacy single media support (kept for backward compatibility)
+    media_url: Optional[str] = None  # Use 'media' array instead
+    media_type: Optional[QuestionMediaType] = None  # Use 'media' array instead
 
     @field_validator('options')
     @classmethod
@@ -102,6 +121,27 @@ class SurveyQuestion(BaseModel):
         end_survey_count = sum(1 for rule in v if rule.action == RoutingAction.END_SURVEY)
         if end_survey_count > 1:
             raise ValueError('Only one END_SURVEY routing rule is allowed per question')
+
+        return v
+
+    @field_validator('media_type')
+    @classmethod
+    def validate_media_type(cls, v, info):
+        media_url = info.data.get('media_url')
+        # Legacy validation: If media_url is provided, media_type must also be provided
+        if media_url and not v:
+            raise ValueError('media_type is required when media_url is provided')
+        return v
+
+    @field_validator('media')
+    @classmethod
+    def validate_media(cls, v, info):
+        if v is None:
+            return v
+
+        # Ensure media array is not empty
+        if len(v) == 0:
+            raise ValueError('media array cannot be empty; omit field instead')
 
         return v
 

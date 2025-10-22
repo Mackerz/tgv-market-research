@@ -4,23 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="Refactor">
+    <list default="true" id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="Survey routing">
+      <change afterPath="$PROJECT_DIR$/MEDIA_TEST_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/QUESTION_MEDIA_GUIDE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/tests/test_question_media.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/create_survey_multiple_media_example.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/create_survey_with_media_example.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/app/survey/unavailable/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionMedia.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionMediaGallery.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/survey/__tests__/QuestionMediaGallery.test.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/reporting.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/reporting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/router.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/router.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/core/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/core/auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/core/rate_limits.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/core/rate_limits.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/crud/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/crud/user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/survey.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app/schemas/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/survey.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/schemas/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/create_sample_survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/create_sample_survey.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/lib/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/lib/api/client.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/types/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/types/survey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/types/survey.ts" afterDir="false" />
@@ -68,8 +68,8 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/claude_docs" />
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/claude_docs" />
       <recent name="$PROJECT_DIR$/backend/claude_docs" />
     </key>
   </component>
@@ -141,7 +141,7 @@
       <workItem from="1759482901171" duration="2335000" />
       <workItem from="1759847874343" duration="1314000" />
       <workItem from="1760387136438" duration="32145000" />
-      <workItem from="1761163003405" duration="4460000" />
+      <workItem from="1761163003405" duration="8276000" />
     </task>
     <task id="LOCAL-00001" summary="initial system">
       <option name="closed" value="true" />
@@ -247,7 +247,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760999076748</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Survey routing">
+      <option name="closed" value="true" />
+      <created>1761167746576</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1761167746576</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -263,7 +271,8 @@
     <MESSAGE value="Deploying to GCP" />
     <MESSAGE value="New screen for survey admin" />
     <MESSAGE value="Refactor" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor" />
+    <MESSAGE value="Survey routing" />
+    <option name="LAST_COMMIT_MESSAGE" value="Survey routing" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/marketResearch$create_sample_survey.coverage" NAME="create_sample_survey Coverage Results" MODIFIED="1758755174421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

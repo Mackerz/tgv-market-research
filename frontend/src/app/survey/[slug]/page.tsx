@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PersonalInfoForm from "@/components/survey/PersonalInfoForm";
 import QuestionComponent from "@/components/survey/QuestionComponent";
@@ -60,6 +60,13 @@ export default function SurveyPage() {
     }
   };
 
+  // Redirect to unavailable page if survey is inactive
+  useEffect(() => {
+    if (survey && !survey.is_active) {
+      router.push('/survey/unavailable');
+    }
+  }, [survey, router]);
+
   // Loading state
   if (loading) {
     return <LoadingState message="Loading survey..." />;
@@ -76,20 +83,9 @@ export default function SurveyPage() {
     );
   }
 
-  // Inactive survey
+  // Show loading while redirecting for inactive survey
   if (!survey.is_active) {
-    return (
-      <EmptyState
-        icon="⏸️"
-        title="Survey Unavailable"
-        message="This survey is currently not accepting responses."
-        action={{
-          label: 'Go Home',
-          onClick: () => router.push('/'),
-        }}
-        fullScreen={true}
-      />
-    );
+    return <LoadingState message="Redirecting..." />;
   }
 
   return (

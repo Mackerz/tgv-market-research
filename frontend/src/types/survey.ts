@@ -14,6 +14,12 @@ export interface Survey {
   updated_at?: string;
 }
 
+export interface QuestionMedia {
+  url: string;
+  type: QuestionMediaType;
+  caption?: string;
+}
+
 export interface SurveyQuestion {
   id: string;
   question: string;
@@ -21,9 +27,15 @@ export interface SurveyQuestion {
   required: boolean;
   options?: string[];
   routing_rules?: RoutingRule[];
+  media?: QuestionMedia[];
+  // Legacy support (deprecated)
+  media_url?: string;
+  media_type?: QuestionMediaType;
 }
 
 export type QuestionType = 'free_text' | 'single' | 'multi' | 'photo' | 'video';
+
+export type QuestionMediaType = 'photo' | 'video';
 
 export type ConditionOperator =
   | 'equals'
