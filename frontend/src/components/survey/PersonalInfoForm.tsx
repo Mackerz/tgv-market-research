@@ -171,14 +171,14 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
               <select
                 value={formData.region}
                 onChange={(e) => handleInputChange('region', e.target.value)}
-                className={`appearance-none bg-white border rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                className={`appearance-none bg-white border rounded-lg px-4 py-3 pr-10 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.region ? 'border-red-500' : 'border-gray-300'
                 }`}
                 disabled={loading}
               >
-                <option value="">Select Region</option>
+                <option value="" className="text-gray-500">Select Region</option>
                 {regions.map((region) => (
-                  <option key={region.code} value={region.code}>
+                  <option key={region.code} value={region.code} className="text-gray-900">
                     {region.flag} {region.code} {region.prefix}
                   </option>
                 ))}

@@ -131,6 +131,7 @@ class ApiClient {
       const response = await fetch(url, {
         ...fetchConfig,
         signal: controller.signal,
+        credentials: 'include', // Include cookies for authentication
       });
 
       clearTimeout(timeoutId);

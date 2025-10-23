@@ -55,7 +55,15 @@ backend/**/*.pyo
 **/tmg-market-research-*.json
 **/*-service-account-*.json
 **/service-account-key*.json
-*.json
-!package*.json
-!tsconfig*.json
-!**/alembic.ini
+**/credentials.json
+google-credentials*.json
+
+# Allow specific JSON files (be explicit)
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+!jest.config.json
+!.vscode/*.json
+!.eslintrc.json
+!backend/alembic.ini

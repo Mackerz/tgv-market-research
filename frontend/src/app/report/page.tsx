@@ -87,6 +87,36 @@ export default function SurveysListPage() {
     }
   }
 
+  const handleExportSurvey = async (surveySlug: string, surveyName: string) => {
+    try {
+      // Fetch the full survey details including survey_flow using the slug endpoint
+      const response = await fetch(apiUrl(`/api/surveys/slug/${surveySlug}`))
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch survey details')
+      }
+
+      const surveyData = await response.json()
+
+      // Create a formatted JSON with proper indentation
+      const jsonString = JSON.stringify(surveyData, null, 2)
+
+      // Create a blob and download it
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${surveySlug}-metadata.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Error exporting survey:', err)
+      alert('Failed to export survey. Please try again.')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -99,9 +129,17 @@ export default function SurveysListPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Surveys</h1>
-          <p className="text-gray-600">View and manage all market research surveys</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Surveys</h1>
+            <p className="text-gray-600">View and manage all market research surveys</p>
+          </div>
+          <Link
+            href="/survey/create"
+            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 font-medium shadow-sm"
+          >
+            Create Survey
+          </Link>
         </div>
 
         {/* Search and Filter Bar */}
@@ -270,20 +308,30 @@ export default function SurveysListPage() {
                         </button>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <Link
-                        href={`/survey/${survey.survey_slug}`}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        Take Survey
-                      </Link>
-                      <span className="text-gray-300">|</span>
-                      <Link
-                        href={`/report/${survey.survey_slug}`}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        View Report
-                      </Link>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end items-center space-x-2">
+                        <Link
+                          href={`/survey/${survey.survey_slug}`}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          Take Survey
+                        </Link>
+                        <span className="text-gray-300">|</span>
+                        <Link
+                          href={`/report/${survey.survey_slug}`}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          View Report
+                        </Link>
+                        <span className="text-gray-300">|</span>
+                        <button
+                          onClick={() => handleExportSurvey(survey.survey_slug, survey.name)}
+                          className="text-purple-600 hover:text-purple-900"
+                          title="Export survey metadata as JSON"
+                        >
+                          Export JSON
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -7,6 +7,7 @@ import json
 
 from app.models import survey
 from app.models import media
+from app.models.taxonomy import ReportingLabel, LabelMapping
 from app.crud import settings as settings_crud
 from app.schemas import reporting as reporting_schemas
 from app.utils.queries import get_approved_submissions_query, get_approved_submission_ids_subquery
@@ -153,10 +154,21 @@ def get_question_response_data(
 
 
 def get_media_analysis_data(db: Session, survey_id: int) -> reporting_schemas.MediaData:
-    """Get media analysis data for photos and videos"""
+    """Get media analysis data for photos and videos using taxonomy reporting labels"""
 
     # Get all completed and approved submission IDs using reusable helper
     approved_submission_ids = get_approved_submission_ids_subquery(db, survey_id)
+
+    # Build a mapping from system labels to reporting labels for this survey
+    system_label_to_reporting_label = {}
+    label_mappings = db.query(LabelMapping, ReportingLabel).join(
+        ReportingLabel, LabelMapping.reporting_label_id == ReportingLabel.id
+    ).filter(
+        ReportingLabel.survey_id == survey_id
+    ).all()
+
+    for mapping, reporting_label in label_mappings:
+        system_label_to_reporting_label[mapping.system_label] = reporting_label.label_name
 
     # Get photo responses with media analysis
     photo_responses = db.query(survey.Response, media.Media).join(
@@ -182,19 +194,23 @@ def get_media_analysis_data(db: Session, survey_id: int) -> reporting_schemas.Me
         )
     ).all()
 
-    # Process photo reporting labels using safe JSON parser
+    # Process photo system labels and map to reporting labels
     photo_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
     for response, media_obj in photo_responses:
-        labels = safe_json_parse(media_obj.reporting_labels, [])
-        for label in labels:
-            photo_label_counts[label].add(response.submission_id)
+        system_labels = safe_json_parse(media_obj.reporting_labels, [])
+        for system_label in system_labels:
+            # Map system label to reporting label, or use "Unmapped" if no mapping exists
+            reporting_label = system_label_to_reporting_label.get(system_label, "Unmapped")
+            photo_label_counts[reporting_label].add(response.submission_id)
 
-    # Process video reporting labels using safe JSON parser
+    # Process video system labels and map to reporting labels
     video_label_counts = defaultdict(set)  # Use set to track distinct submission IDs
     for response, media_obj in video_responses:
-        labels = safe_json_parse(media_obj.reporting_labels, [])
-        for label in labels:
-            video_label_counts[label].add(response.submission_id)
+        system_labels = safe_json_parse(media_obj.reporting_labels, [])
+        for system_label in system_labels:
+            # Map system label to reporting label, or use "Unmapped" if no mapping exists
+            reporting_label = system_label_to_reporting_label.get(system_label, "Unmapped")
+            video_label_counts[reporting_label].add(response.submission_id)
 
     # Convert sets to counts
     photo_final_counts = {label: len(submission_ids) for label, submission_ids in photo_label_counts.items()}

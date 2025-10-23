@@ -1,25 +1,22 @@
 """FastAPI application entry point"""
-from fastapi import FastAPI, Depends, Request
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-import os
 import logging
+import os
 
-from app.core.database import get_db, engine, Base
+from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.api.v1 import api_router
+from app.core.database import Base, engine, get_db
 from app.core.error_handlers import register_error_handlers
 
 # Import models to ensure they're registered with SQLAlchemy
-from app.models.user import User, Post
-from app.models.survey import Survey, Submission, Response
-from app.models.media import Media
-from app.models.settings import ReportSettings, QuestionDisplayName
 
 # Configure logging
 logging.basicConfig(
@@ -38,12 +35,33 @@ Base.metadata.create_all(bind=engine)
 # This limits requests by IP address to prevent abuse
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
-# Create FastAPI application
+# Create FastAPI application with request size limits
 app = FastAPI(
     title="Market Research Backend API",
     version="1.0.0",
     description="Backend API for Market Research Survey Platform"
 )
+
+# Add request size limit middleware (50MB for file uploads, 10MB for regular requests)
+class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
+    """Middleware to enforce request size limits."""
+    async def dispatch(self, request: Request, call_next):
+        # Check if this is a file upload endpoint
+        is_upload = "/upload" in request.url.path or "/media" in request.url.path
+        max_size = 52428800 if is_upload else 10485760  # 50MB for uploads, 10MB for others
+
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > max_size:
+            max_mb = max_size / 1048576
+            raise StarletteHTTPException(
+                status_code=413,
+                detail=f"Request body too large. Maximum allowed: {max_mb}MB"
+            )
+
+        return await call_next(request)
+
+# Add request size limit middleware
+app.add_middleware(RequestSizeLimitMiddleware)
 
 # Add rate limiter to app state
 app.state.limiter = limiter
@@ -205,7 +223,7 @@ async def startup_validation():
                 logger.error(f"❌ {error_msg}")
                 errors.append(error_msg)
             else:
-                logger.info(f"✅ GCP credentials file found")
+                logger.info("✅ GCP credentials file found")
         else:
             logger.warning("⚠️ GCP_AI_ENABLED=true but GOOGLE_APPLICATION_CREDENTIALS not set")
             logger.warning("⚠️ Will attempt to use Application Default Credentials")

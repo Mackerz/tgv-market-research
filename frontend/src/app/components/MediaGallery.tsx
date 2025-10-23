@@ -340,15 +340,15 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
       {/* Summary */}
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Media Gallery</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Media Gallery</h2>
           <div className="flex space-x-4 text-sm">
-            <div className="bg-blue-100 px-3 py-1 rounded">
+            <div className="bg-blue-100 px-3 py-1 rounded text-blue-800">
               Total: {filteredItems.length}
             </div>
-            <div className="bg-green-100 px-3 py-1 rounded">
+            <div className="bg-green-100 px-3 py-1 rounded text-green-800">
               Photos: {filteredItems.filter(item => item.media_type === 'photo').length}
             </div>
-            <div className="bg-purple-100 px-3 py-1 rounded">
+            <div className="bg-purple-100 px-3 py-1 rounded text-purple-800">
               Videos: {filteredItems.filter(item => item.media_type === 'video').length}
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Filters</h3>
+          <h3 className="text-lg font-medium text-gray-900">Filters</h3>
           <button
             onClick={clearFilters}
             className="text-sm text-blue-600 hover:text-blue-800"
@@ -374,7 +374,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
             <select
               value={mediaTypeFilter}
               onChange={(e) => setMediaTypeFilter(e.target.value as 'all' | 'photo' | 'video')}
-              className="w-full px-3 py-2 border rounded-md text-sm"
+              className="w-full px-3 py-2 border rounded-md text-sm text-gray-900 bg-white"
             >
               <option value="all">All Media</option>
               <option value="photo">Photos Only</option>
@@ -391,7 +391,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
                 placeholder="Min"
                 value={ageMin || ''}
                 onChange={(e) => setAgeMin(e.target.value ? parseInt(e.target.value) : undefined)}
-                className="w-full px-3 py-2 border rounded-md text-sm"
+                className="w-full px-3 py-2 border rounded-md text-sm text-gray-900 bg-white placeholder-gray-400"
                 min="0"
               />
               <input
@@ -399,7 +399,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
                 placeholder="Max"
                 value={ageMax || ''}
                 onChange={(e) => setAgeMax(e.target.value ? parseInt(e.target.value) : undefined)}
-                className="w-full px-3 py-2 border rounded-md text-sm"
+                className="w-full px-3 py-2 border rounded-md text-sm text-gray-900 bg-white placeholder-gray-400"
                 min="0"
               />
             </div>
@@ -408,16 +408,16 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
           {/* Reporting Labels */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Reporting Labels</label>
-            <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+            <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1 bg-white">
               {availableLabels.map(label => (
-                <label key={label} className="flex items-center text-sm">
+                <label key={label} className="flex items-center text-sm hover:bg-gray-50 px-1 py-0.5 rounded cursor-pointer">
                   <input
                     type="checkbox"
                     checked={selectedLabels.includes(label)}
                     onChange={() => handleLabelToggle(label)}
-                    className="mr-2"
+                    className="mr-2 flex-shrink-0"
                   />
-                  <span className="truncate">{label}</span>
+                  <span className="truncate text-gray-900">{label}</span>
                 </label>
               ))}
               {availableLabels.length === 0 && (

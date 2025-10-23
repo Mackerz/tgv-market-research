@@ -47,7 +47,8 @@ class GeminiLabelGenerator:
                     genai.configure()
                     logger.info("✅ Gemini configured with default GCP credentials")
 
-            self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
+            # Use the full model name with models/ prefix
+            self.model = genai.GenerativeModel('models/gemini-flash-latest')
 
             logger.info("✅ Gemini AI services initialized successfully")
 
@@ -308,6 +309,130 @@ JSON response:"""
             logger.error(f"❌ Gemini label summarization failed: {str(e)}")
             logger.error(f"❌ Error type: {type(e).__name__}")
             return {"themes": [], "insights": []}
+
+    def generate_taxonomy_categories(self, all_labels: List[str], max_categories: int = 6) -> Dict[str, any]:
+        """
+        Generate high-level taxonomy categories from system labels using Gemini AI
+
+        Args:
+            all_labels: Flat list of all system-generated labels
+            max_categories: Maximum number of high-level categories to create (3-10)
+
+        Returns:
+            Dictionary with taxonomy structure mapping high-level labels to system labels
+        """
+        if not self.enabled or not self.model:
+            # Simulate taxonomy generation in development
+            logger.info("🏷️ [SIMULATION] Generating taxonomy categories")
+            return {
+                "categories": [
+                    {
+                        "category_name": "Product Experience",
+                        "description": "How consumers interact with and experience products",
+                        "system_labels": ["product_interaction", "product_usage", "unboxing", "hands_on_experience"]
+                    },
+                    {
+                        "category_name": "Emotional Response",
+                        "description": "Consumer sentiment and feelings about products/brands",
+                        "system_labels": ["positive_sentiment", "satisfaction", "excitement", "happiness"]
+                    },
+                    {
+                        "category_name": "Environment & Context",
+                        "description": "Physical and social context of product usage",
+                        "system_labels": ["home_environment", "indoor_usage", "lifestyle_context", "social_setting"]
+                    },
+                    {
+                        "category_name": "Brand Engagement",
+                        "description": "Consumer awareness and interaction with brands",
+                        "system_labels": ["brand_awareness", "brand_loyalty", "brand_comparison"]
+                    }
+                ]
+            }
+
+        logger.info(f"🤖 Generating taxonomy with Gemini (max {max_categories} categories)")
+
+        try:
+            # Count label frequencies
+            label_counts = {}
+            for label in all_labels:
+                label_counts[label] = label_counts.get(label, 0) + 1
+
+            # Sort labels by frequency
+            sorted_labels = sorted(label_counts.items(), key=lambda x: x[1], reverse=True)
+
+            # Format labels for the prompt
+            labels_text = "\n".join([f"- {label}: {count} times" for label, count in sorted_labels])
+
+            # Create prompt for taxonomy generation
+            prompt = f"""
+You are a market research expert creating a taxonomy system for consumer survey data.
+
+Here are all the system-generated labels from media analysis, with their frequencies:
+
+{labels_text}
+
+Your task:
+Create a hierarchical taxonomy by grouping these system labels into {max_categories} or fewer high-level reporting categories.
+
+Requirements:
+1. Create {max_categories} or fewer high-level category names that are:
+   - Clear and business-focused
+   - Meaningful for market research reporting
+   - Broad enough to group multiple related concepts
+   - Mutually exclusive where possible
+
+2. For each category:
+   - Provide a descriptive category name (2-4 words)
+   - Write a brief description of what it represents
+   - Assign relevant system labels to this category
+   - Ensure every system label is assigned to exactly one category
+
+3. Consider:
+   - Semantic similarity (group similar concepts)
+   - Business value (categories should be useful for reporting)
+   - Balance (try to distribute labels reasonably across categories)
+
+Return your taxonomy in JSON format:
+{{
+    "categories": [
+        {{
+            "category_name": "Clear Category Name",
+            "description": "Brief description of what this category represents for reporting",
+            "system_labels": ["label1", "label2", "label3"]
+        }}
+    ]
+}}
+
+JSON response:"""
+
+            # Generate content
+            response = self.model.generate_content(prompt)
+            response_text = response.text.strip()
+
+            # Try to parse JSON from response
+            try:
+                # Try direct JSON parsing first
+                taxonomy = json.loads(response_text)
+                if isinstance(taxonomy, dict) and "categories" in taxonomy:
+                    logger.info(f"✅ Generated taxonomy with {len(taxonomy.get('categories', []))} categories")
+                    return taxonomy
+            except json.JSONDecodeError:
+                # Try to extract JSON from markdown code blocks
+                import re
+                json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+                if json_match:
+                    taxonomy = json.loads(json_match.group(1))
+                    if isinstance(taxonomy, dict) and "categories" in taxonomy:
+                        logger.info(f"✅ Generated taxonomy with {len(taxonomy.get('categories', []))} categories")
+                        return taxonomy
+
+            logger.error(f"❌ Failed to parse Gemini taxonomy response as JSON: {response_text}")
+            return {"categories": []}
+
+        except Exception as e:
+            logger.error(f"❌ Gemini taxonomy generation failed: {str(e)}")
+            logger.error(f"❌ Error type: {type(e).__name__}")
+            return {"categories": []}
 
 # Global instance
 gemini_labeler = GeminiLabelGenerator()

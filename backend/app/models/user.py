@@ -15,6 +15,8 @@ class User(Base):
     google_id = Column(String, unique=True, index=True, nullable=True)  # For Google SSO
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)  # Admin flag for report access
+    failed_login_attempts = Column(Integer, default=0)
+    locked_until = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import MediaGallery from '../../components/MediaGallery'
+import TaxonomiesTab from '@/components/report/TaxonomiesTab'
 import { apiClient, ApiError } from '@/lib/api'
 import { apiUrl } from '@/config/api'
 
@@ -130,7 +131,7 @@ interface ReportingData {
   media_analysis: MediaData
 }
 
-type TabType = 'submissions' | 'reporting' | 'media-gallery' | 'settings'
+type TabType = 'submissions' | 'reporting' | 'media-gallery' | 'taxonomies' | 'settings'
 type ApprovalFilter = 'all' | 'approved' | 'rejected' | 'pending'
 type SortBy = 'submitted_at' | 'email' | 'age' | 'region'
 
@@ -253,7 +254,9 @@ export default function ReportPage() {
   const fetchSettings = async () => {
     try {
       setSettingsLoading(true)
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings`))
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings`), {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch settings')
       }
@@ -281,6 +284,7 @@ export default function ReportPage() {
       setSettingsSaving(true)
       const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings/age-ranges`), {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -311,6 +315,7 @@ export default function ReportPage() {
 
       const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings/question-display-names`), {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -362,7 +367,9 @@ export default function ReportPage() {
   const fetchReportingData = async () => {
     try {
       setReportingLoading(true)
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/data`))
+      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/data`), {
+        credentials: 'include'
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch reporting data')
       }
@@ -539,16 +546,16 @@ export default function ReportPage() {
               <p className="text-gray-500">Survey: {reportSlug}</p>
             </div>
             <div className="flex space-x-4 text-sm">
-              <div className="bg-blue-100 px-3 py-1 rounded">
+              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-medium">
                 Total: {submissions?.total_count || 0}
               </div>
-              <div className="bg-yellow-100 px-3 py-1 rounded">
+              <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded font-medium">
                 Pending: {submissions?.pending_count || 0}
               </div>
-              <div className="bg-green-100 px-3 py-1 rounded">
+              <div className="bg-green-100 text-green-800 px-3 py-1 rounded font-medium">
                 Approved: {submissions?.approved_count || 0}
               </div>
-              <div className="bg-red-100 px-3 py-1 rounded">
+              <div className="bg-red-100 text-red-800 px-3 py-1 rounded font-medium">
                 Rejected: {submissions?.rejected_count || 0}
               </div>
             </div>
@@ -561,6 +568,7 @@ export default function ReportPage() {
                 { key: 'submissions', label: 'Submissions' },
                 { key: 'reporting', label: 'Reporting' },
                 { key: 'media-gallery', label: 'Media Gallery' },
+                { key: 'taxonomies', label: 'Taxonomies' },
                 { key: 'settings', label: 'Settings' }
               ].map((tab) => (
                 <button
@@ -587,14 +595,14 @@ export default function ReportPage() {
             <div className={selectedSubmission ? 'w-1/2' : 'w-full'}>
               <div className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b">
-                  <h2 className="text-xl font-semibold">Submissions</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Submissions</h2>
 
                   {/* Filters */}
                   <div className="mt-4 flex space-x-4">
                     <select
                       value={approvalFilter}
                       onChange={(e) => setApprovalFilter(e.target.value as ApprovalFilter)}
-                      className="px-3 py-2 border rounded-md"
+                      className="px-3 py-2 border rounded-md text-gray-900 bg-white"
                     >
                       <option value="all">All Submissions</option>
                       <option value="pending">Pending</option>
@@ -605,7 +613,7 @@ export default function ReportPage() {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as SortBy)}
-                      className="px-3 py-2 border rounded-md"
+                      className="px-3 py-2 border rounded-md text-gray-900 bg-white"
                     >
                       <option value="submitted_at">Date Submitted</option>
                       <option value="email">Email</option>
@@ -616,7 +624,7 @@ export default function ReportPage() {
                     <select
                       value={sortOrder}
                       onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                      className="px-3 py-2 border rounded-md"
+                      className="px-3 py-2 border rounded-md text-gray-900 bg-white"
                     >
                       <option value="desc">Descending</option>
                       <option value="asc">Ascending</option>
@@ -1064,6 +1072,10 @@ export default function ReportPage() {
           <MediaGallery reportSlug={reportSlug} />
         )}
 
+        {activeTab === 'taxonomies' && submissions?.survey && (
+          <TaxonomiesTab surveyId={submissions.survey.id} />
+        )}
+
         {activeTab === 'settings' && (
           <div className="space-y-8">
             {settingsLoading ? (
@@ -1101,7 +1113,7 @@ export default function ReportPage() {
                               min="0"
                               value={range.min}
                               onChange={(e) => updateAgeRange(index, 'min', parseInt(e.target.value) || 0)}
-                              className="w-full px-3 py-2 border rounded-md text-sm"
+                              className="w-full px-3 py-2 border rounded-md text-sm text-gray-900 bg-white"
                             />
                           </div>
 
@@ -1115,7 +1127,7 @@ export default function ReportPage() {
                               value={range.max || ''}
                               onChange={(e) => updateAgeRange(index, 'max', e.target.value ? parseInt(e.target.value) : null)}
                               placeholder="No limit"
-                              className="w-full px-3 py-2 border rounded-md text-sm"
+                              className="w-full px-3 py-2 border rounded-md text-sm text-gray-900 bg-white placeholder-gray-400"
                             />
                           </div>
 
@@ -1127,7 +1139,7 @@ export default function ReportPage() {
                               type="text"
                               value={range.label}
                               onChange={(e) => updateAgeRange(index, 'label', e.target.value)}
-                              className="w-full px-3 py-2 border rounded-md text-sm"
+                              className="w-full px-3 py-2 border rounded-md text-sm text-gray-900 bg-white placeholder-gray-400"
                               placeholder="e.g., 0-18"
                             />
                           </div>
@@ -1201,7 +1213,7 @@ export default function ReportPage() {
                               value={tempQuestionDisplayNames[question.id] || ''}
                               onChange={(e) => updateQuestionDisplayName(question.id, e.target.value)}
                               placeholder="Leave empty to use original question text"
-                              className="w-full px-3 py-2 border rounded-md text-sm"
+                              className="w-full px-3 py-2 border rounded-md text-sm text-gray-900 bg-white placeholder-gray-400"
                             />
                             {tempQuestionDisplayNames[question.id] && (
                               <div className="text-xs text-gray-500 mt-1">

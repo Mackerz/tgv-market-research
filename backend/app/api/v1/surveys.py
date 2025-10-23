@@ -67,11 +67,15 @@ def read_surveys(
 
     # Search by survey name
     if search:
-        query = query.filter(survey_models.Survey.name.ilike(f"%{search}%"))
+        from app.utils.sql_helpers import escape_like_pattern
+        escaped_search = escape_like_pattern(search)
+        query = query.filter(survey_models.Survey.name.ilike(f"%{escaped_search}%", escape='\\'))
 
     # Filter by client
     if client:
-        query = query.filter(survey_models.Survey.client.ilike(f"%{client}%"))
+        from app.utils.sql_helpers import escape_like_pattern
+        escaped_client = escape_like_pattern(client)
+        query = query.filter(survey_models.Survey.client.ilike(f"%{escaped_client}%", escape='\\'))
 
     # Sorting
     if sort_by == "created_at":

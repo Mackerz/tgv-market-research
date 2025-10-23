@@ -4,6 +4,7 @@
 from app.models.media import Media  # noqa: F401
 from app.models.settings import ReportSettings, QuestionDisplayName  # noqa: F401
 from app.models.survey import Survey, Submission, Response  # noqa: F401
+from app.models.taxonomy import ReportingLabel, LabelMapping  # noqa: F401
 from app.models.user import User, Post  # noqa: F401
 
 __all__ = [
@@ -19,4 +20,7 @@ __all__ = [
     # Settings models
     "ReportSettings",
     "QuestionDisplayName",
+    # Taxonomy models
+    "ReportingLabel",
+    "LabelMapping",
 ]

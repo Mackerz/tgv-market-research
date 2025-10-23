@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
 from enum import Enum
@@ -117,10 +117,9 @@ class SurveyQuestion(BaseModel):
         if v is None:
             return v
 
-        # Ensure at most one END_SURVEY rule exists
-        end_survey_count = sum(1 for rule in v if rule.action == RoutingAction.END_SURVEY)
-        if end_survey_count > 1:
-            raise ValueError('Only one END_SURVEY routing rule is allowed per question')
+        # Multiple END_SURVEY rules are allowed - they represent OR conditions
+        # Example: "if Rarely then end" OR "if Never then end"
+        # Each rule is evaluated independently and first match wins
 
         return v
 
@@ -147,10 +146,10 @@ class SurveyQuestion(BaseModel):
 
 # Survey Schemas
 class SurveyBase(BaseModel):
-    survey_slug: str
-    name: str
-    client: Optional[str] = None
-    survey_flow: List[SurveyQuestion]
+    survey_slug: str = Field(..., max_length=100, min_length=3)
+    name: str = Field(..., max_length=255, min_length=3)
+    client: Optional[str] = Field(None, max_length=255)
+    survey_flow: List[SurveyQuestion] = Field(..., max_length=100)  # Max 100 questions
     is_active: bool = True
 
     @field_validator('survey_slug')
@@ -179,10 +178,10 @@ class Survey(SurveyBase):
 
 # Submission Schemas
 class SubmissionPersonalInfo(BaseModel):
-    email: EmailStr
-    phone_number: str
+    email: EmailStr = Field(..., max_length=255)
+    phone_number: str = Field(..., max_length=20, min_length=7)
     region: Region
-    date_of_birth: str  # YYYY-MM-DD format
+    date_of_birth: str = Field(..., max_length=10, min_length=10)  # YYYY-MM-DD format
     gender: Gender
 
     @field_validator('email')
@@ -233,17 +232,17 @@ class Submission(SubmissionBase):
 # Response Schemas
 class ResponseBase(BaseModel):
     submission_id: int
-    question_id: Optional[str] = None  # Question ID from survey_flow (for efficient routing)
-    question: str
+    question_id: Optional[str] = Field(None, max_length=100)  # Question ID from survey_flow (for efficient routing)
+    question: str = Field(..., max_length=1000)
     question_type: QuestionType
 
 class ResponseAnswer(BaseModel):
-    single_answer: Optional[str] = None
-    free_text_answer: Optional[str] = None
-    multiple_choice_answer: Optional[List[str]] = None
-    photo_url: Optional[str] = None
-    video_url: Optional[str] = None
-    video_thumbnail_url: Optional[str] = None
+    single_answer: Optional[str] = Field(None, max_length=1000)
+    free_text_answer: Optional[str] = Field(None, max_length=10000)  # Longer for detailed feedback
+    multiple_choice_answer: Optional[List[str]] = Field(None, max_length=50)  # Max 50 options
+    photo_url: Optional[str] = Field(None, max_length=500)
+    video_url: Optional[str] = Field(None, max_length=500)
+    video_thumbnail_url: Optional[str] = Field(None, max_length=500)
 
     @field_validator('single_answer', 'free_text_answer')
     @classmethod

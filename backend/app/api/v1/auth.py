@@ -1,9 +1,11 @@
 """Authentication API endpoints"""
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 import os
 
 from app.core.database import get_db
@@ -18,10 +20,13 @@ from app.models.user import User
 from app.crud.user import user as user_crud
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/login", response_model=LoginResponse)
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     login_data: LoginRequest,
     response: Response,
     db: Session = Depends(get_db)
@@ -63,7 +68,9 @@ async def login(
 
 
 @router.post("/google", response_model=LoginResponse)
+@limiter.limit("10/minute")
 async def google_login(
+    request: Request,
     google_data: GoogleLoginRequest,
     response: Response,
     db: Session = Depends(get_db)

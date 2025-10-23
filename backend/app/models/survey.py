@@ -22,6 +22,7 @@ class Survey(Base):
     # Relationship to submissions
     submissions = relationship("Submission", back_populates="survey")
     report_settings = relationship("ReportSettings", back_populates="survey", uselist=False)
+    reporting_labels = relationship("ReportingLabel", back_populates="survey")
 
 class Submission(Base):
     __tablename__ = "submissions"
