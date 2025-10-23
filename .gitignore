@@ -67,3 +67,5 @@ google-credentials*.json
 !.vscode/*.json
 !.eslintrc.json
 !backend/alembic.ini
+
+.idea/
