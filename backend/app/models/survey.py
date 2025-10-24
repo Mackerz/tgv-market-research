@@ -19,6 +19,10 @@ class Survey(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     is_active = Column(Boolean, default=True)
 
+    # Third-party integration redirect URLs
+    complete_redirect_url = Column(String, nullable=True)  # Redirect URL when survey is completed
+    screenout_redirect_url = Column(String, nullable=True)  # Redirect URL when survey is screened out
+
     # Relationship to submissions
     submissions = relationship("Submission", back_populates="survey")
     report_settings = relationship("ReportSettings", back_populates="survey", uselist=False)
@@ -28,7 +32,7 @@ class Submission(Base):
     __tablename__ = "submissions"
 
     id = Column(BigIntegerType, primary_key=True, index=True, autoincrement=True)
-    survey_id = Column(BigIntegerType, ForeignKey("surveys.id"), nullable=False)
+    survey_id = Column(BigIntegerType, ForeignKey("surveys.id"), nullable=False, index=True)
 
     # Personal information
     email = Column(String, nullable=False)
@@ -42,6 +46,9 @@ class Submission(Base):
     is_approved = Column(Boolean, nullable=True, default=None)  # None=pending, True=approved, False=rejected
     is_completed = Column(Boolean, default=False)
     age = Column(Integer, nullable=True)  # Calculated age at submission time
+
+    # Third-party integration
+    external_user_id = Column(String, nullable=True, index=True)  # Optional third-party user ID
 
     # Relationships
     survey = relationship("Survey", back_populates="submissions")
@@ -72,7 +79,7 @@ class Response(Base):
     __tablename__ = "responses"
 
     id = Column(BigIntegerType, primary_key=True, index=True, autoincrement=True)
-    submission_id = Column(BigIntegerType, ForeignKey("submissions.id"), nullable=False)
+    submission_id = Column(BigIntegerType, ForeignKey("submissions.id"), nullable=False, index=True)
 
     # Question information
     question_id = Column(String, nullable=True)  # Question ID from survey_flow (for routing)

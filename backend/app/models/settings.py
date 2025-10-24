@@ -9,7 +9,7 @@ class ReportSettings(Base):
     __tablename__ = "report_settings"
 
     id = Column(BigIntegerType, primary_key=True, index=True, autoincrement=True)
-    survey_id = Column(BigIntegerType, ForeignKey("surveys.id"), unique=True, nullable=False)
+    survey_id = Column(BigIntegerType, ForeignKey("surveys.id"), unique=True, nullable=False, index=True)
 
     # Age ranges stored as JSON array of objects: [{"min": 0, "max": 18, "label": "0-18"}, ...]
     age_ranges = Column(JSONType, nullable=False, default=[
@@ -31,7 +31,7 @@ class QuestionDisplayName(Base):
     __tablename__ = "question_display_names"
 
     id = Column(BigIntegerType, primary_key=True, index=True, autoincrement=True)
-    report_settings_id = Column(BigIntegerType, ForeignKey("report_settings.id"), nullable=False)
+    report_settings_id = Column(BigIntegerType, ForeignKey("report_settings.id"), nullable=False, index=True)
 
     # Store the question text from the survey flow
     question_text = Column(Text, nullable=False)

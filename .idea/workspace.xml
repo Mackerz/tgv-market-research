@@ -4,26 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="Survey routing">
-      <change afterPath="$PROJECT_DIR$/MEDIA_TEST_SUMMARY.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/QUESTION_MEDIA_GUIDE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/tests/test_question_media.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/create_survey_multiple_media_example.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/create_survey_with_media_example.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/app/survey/unavailable/page.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionMedia.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionMediaGallery.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/survey/__tests__/QuestionMediaGallery.test.tsx" afterDir="false" />
+    <list default="true" id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="Survey media">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/surveys.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/schemas/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/survey.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/lib/api/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/lib/api/client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/types/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/types/survey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/types/survey.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,8 +51,8 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/claude_docs" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/backend/claude_docs" />
     </key>
   </component>
@@ -141,7 +124,8 @@
       <workItem from="1759482901171" duration="2335000" />
       <workItem from="1759847874343" duration="1314000" />
       <workItem from="1760387136438" duration="32145000" />
-      <workItem from="1761163003405" duration="8276000" />
+      <workItem from="1761163003405" duration="8770000" />
+      <workItem from="1761206499000" duration="25131000" />
     </task>
     <task id="LOCAL-00001" summary="initial system">
       <option name="closed" value="true" />
@@ -255,7 +239,23 @@
       <option name="project" value="LOCAL" />
       <updated>1761167746576</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Survey media">
+      <option name="closed" value="true" />
+      <created>1761171427395</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1761171427395</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Survey media">
+      <option name="closed" value="true" />
+      <created>1761239466138</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1761239466138</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -272,7 +272,8 @@
     <MESSAGE value="New screen for survey admin" />
     <MESSAGE value="Refactor" />
     <MESSAGE value="Survey routing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Survey routing" />
+    <MESSAGE value="Survey media" />
+    <option name="LAST_COMMIT_MESSAGE" value="Survey media" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/marketResearch$create_sample_survey.coverage" NAME="create_sample_survey Coverage Results" MODIFIED="1758755174421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

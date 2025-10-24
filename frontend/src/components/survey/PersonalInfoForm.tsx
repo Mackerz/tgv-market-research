@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { isValidEmail, isValidPhoneNumber } from "@/lib/security/sanitize";
 
 interface PersonalInfoFormProps {
   onComplete: (
@@ -49,22 +50,18 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Email validation using secure validator
     if (!formData.email) {
       newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(formData.email)) {
+    } else if (!isValidEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Phone number validation
+    // Phone number validation using secure validator
     if (!formData.phone_number) {
       newErrors.phone_number = 'Phone number is required';
-    } else {
-      const digitsOnly = formData.phone_number.replace(/\D/g, '');
-      if (digitsOnly.length < 7 || digitsOnly.length > 15) {
-        newErrors.phone_number = 'Phone number must contain 7-15 digits';
-      }
+    } else if (!isValidPhoneNumber(formData.phone_number)) {
+      newErrors.phone_number = 'Phone number must contain 7-15 digits';
     }
 
     // Region validation
