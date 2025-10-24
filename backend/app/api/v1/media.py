@@ -118,13 +118,13 @@ def trigger_media_analysis(
     if response.question_type == "photo" and response.photo_url:
         logger.info(f"🔄 Manually triggering photo analysis for response {response_id}")
         logger.info(f"📷 Photo URL: {response.photo_url}")
-        background_tasks.add_task(analyze_media_content_background, response_id, db)
+        background_tasks.add_task(analyze_media_content_background, response_id)
         return {"message": f"Photo analysis triggered for response {response_id}"}
 
     elif response.question_type == "video" and response.video_url:
         logger.info(f"🔄 Manually triggering video analysis for response {response_id}")
         logger.info(f"🎥 Video URL: {response.video_url}")
-        background_tasks.add_task(analyze_media_content_background, response_id, db)
+        background_tasks.add_task(analyze_media_content_background, response_id)
         return {"message": f"Video analysis triggered for response {response_id}"}
 
     else:

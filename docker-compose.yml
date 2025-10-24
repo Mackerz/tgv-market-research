@@ -23,6 +23,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: fastapi_db
       # GCP Configuration
+      GCP_STORAGE_ENABLED: "true"
       GCP_AI_ENABLED: "true"
       GCP_PROJECT_ID: ${GCP_PROJECT_ID:-tmg-market-research}
       GCP_STORAGE_BUCKET_PHOTOS: ${GCP_STORAGE_BUCKET_PHOTOS:-tmg-market-research-photos}

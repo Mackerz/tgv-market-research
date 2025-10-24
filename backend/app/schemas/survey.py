@@ -151,6 +151,8 @@ class SurveyBase(BaseModel):
     client: Optional[str] = Field(None, max_length=255)
     survey_flow: List[SurveyQuestion] = Field(..., max_length=100)  # Max 100 questions
     is_active: bool = True
+    complete_redirect_url: Optional[str] = Field(None, max_length=500)  # Third-party complete redirect URL
+    screenout_redirect_url: Optional[str] = Field(None, max_length=500)  # Third-party screenout redirect URL
 
     @field_validator('survey_slug')
     @classmethod
@@ -167,6 +169,8 @@ class SurveyUpdate(BaseModel):
     client: Optional[str] = None
     survey_flow: Optional[List[SurveyQuestion]] = None
     is_active: Optional[bool] = None
+    complete_redirect_url: Optional[str] = None
+    screenout_redirect_url: Optional[str] = None
 
 class Survey(SurveyBase):
     id: int
@@ -183,6 +187,7 @@ class SubmissionPersonalInfo(BaseModel):
     region: Region
     date_of_birth: str = Field(..., max_length=10, min_length=10)  # YYYY-MM-DD format
     gender: Gender
+    external_user_id: Optional[str] = Field(None, max_length=255)  # Optional third-party user ID
 
     @field_validator('email')
     @classmethod
@@ -225,6 +230,7 @@ class Submission(SubmissionBase):
     is_completed: bool
     age: Optional[int] = None
     calculated_age: Optional[int] = None
+    external_user_id: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -5,8 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c0b9a45e-f297-4d29-9882-3408cbf007d2" name="Changes" comment="Survey media">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/media.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/media.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/models/media.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/media.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/models/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/models/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/survey.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/models/taxonomy.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/taxonomy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/schemas/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/survey.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/services/media_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/services/media_analysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/utils/routing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/survey/create/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/survey/create/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/PersonalInfoForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/PersonalInfoForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/SurveyComplete.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/SurveyComplete.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/lib/api/services/surveys.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/types/survey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/types/survey.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +145,7 @@
       <workItem from="1759847874343" duration="1314000" />
       <workItem from="1760387136438" duration="32145000" />
       <workItem from="1761163003405" duration="8770000" />
-      <workItem from="1761206499000" duration="25131000" />
+      <workItem from="1761206499000" duration="30527000" />
     </task>
     <task id="LOCAL-00001" summary="initial system">
       <option name="closed" value="true" />
@@ -255,7 +275,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761239466138</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Survey media">
+      <option name="closed" value="true" />
+      <created>1761239520233</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1761239520233</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -96,7 +96,12 @@ export const surveyService = {
   uploadPhoto: (slug: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return apiClient.upload<FileUploadResponse>(`/api/surveys/${slug}/upload/photo`, formData);
+    // Increase timeout for photo uploads
+    return apiClient.upload<FileUploadResponse>(
+      `/api/surveys/${slug}/upload/photo`,
+      formData,
+      { timeout: 60000 } // 1 minute for photo uploads
+    );
   },
 
   /**
@@ -105,7 +110,12 @@ export const surveyService = {
   uploadVideo: (slug: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return apiClient.upload<FileUploadResponse>(`/api/surveys/${slug}/upload/video`, formData);
+    // Increase timeout for video uploads (can be large files)
+    return apiClient.upload<FileUploadResponse>(
+      `/api/surveys/${slug}/upload/video`,
+      formData,
+      { timeout: 120000 } // 2 minutes for video uploads
+    );
   },
 
   /**

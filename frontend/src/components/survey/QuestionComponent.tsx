@@ -32,6 +32,7 @@ interface QuestionComponentProps {
   progress: SurveyProgress;
   onQuestionComplete: () => void;
   onSurveyComplete: () => void;
+  onScreenedOut?: () => void;
 }
 
 export default function QuestionComponent({
@@ -39,7 +40,8 @@ export default function QuestionComponent({
   submissionId,
   progress,
   onQuestionComplete,
-  onSurveyComplete
+  onSurveyComplete,
+  onScreenedOut
 }: QuestionComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(progress.current_question);
   const [loading, setLoading] = useState(false);
@@ -66,13 +68,20 @@ export default function QuestionComponent({
       // Check if question has routing rules
       if (currentQuestion.routing_rules && currentQuestion.routing_rules.length > 0) {
         // Use routing logic to determine next question
+        // Increase timeout to 60 seconds for video/photo questions that might trigger analysis
         const routingResponse = await apiClient.get<NextQuestionResponse>(
           `/api/submissions/${submissionId}/next-question`,
-          { params: { current_question_id: currentQuestion.id } }
+          {
+            params: { current_question_id: currentQuestion.id },
+            timeout: 60000 // 60 seconds timeout for routing queries
+          }
         );
 
         if (routingResponse.action === 'end_survey') {
-          // Survey ended early due to routing rule
+          // Survey ended early due to routing rule (screenout)
+          if (onScreenedOut) {
+            onScreenedOut();
+          }
           onSurveyComplete();
           return;
         }

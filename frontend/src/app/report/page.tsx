@@ -324,6 +324,14 @@ export default function SurveysListPage() {
                           View Report
                         </Link>
                         <span className="text-gray-300">|</span>
+                        <Link
+                          href={`/survey/create?edit=${survey.survey_slug}`}
+                          className="text-orange-600 hover:text-orange-900"
+                          title="Edit survey"
+                        >
+                          Edit Survey
+                        </Link>
+                        <span className="text-gray-300">|</span>
                         <button
                           onClick={() => handleExportSurvey(survey.survey_slug, survey.name)}
                           className="text-purple-600 hover:text-purple-900"

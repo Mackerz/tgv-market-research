@@ -1,18 +1,12 @@
 """Tests for authentication API endpoints"""
 import pytest
+from datetime import datetime
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch, MagicMock
 from sqlalchemy.orm import Session
 
-from app.main import app
 from app.models.user import User
 from app.core.auth import get_password_hash, create_access_token
-
-
-@pytest.fixture
-def client():
-    """Create test client"""
-    return TestClient(app)
 
 
 @pytest.fixture
@@ -29,7 +23,11 @@ def mock_user():
         hashed_password=hashed,
         google_id=None,
         is_active=True,
-        is_admin=True
+        is_admin=True,
+        failed_login_attempts=0,
+        locked_until=None,
+        created_at=datetime.now(),
+        updated_at=None
     )
 
 
@@ -47,7 +45,11 @@ def mock_admin():
         hashed_password=hashed,
         google_id=None,
         is_active=True,
-        is_admin=True
+        is_admin=True,
+        failed_login_attempts=0,
+        locked_until=None,
+        created_at=datetime.now(),
+        updated_at=None
     )
 
 

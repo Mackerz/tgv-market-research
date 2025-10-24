@@ -4,6 +4,8 @@ Tests the /next-question endpoint and auto-rejection on end_survey.
 """
 import pytest
 from fastapi.testclient import TestClient
+from app.main import app
+from app.core.database import get_db
 from app.models.survey import Survey, Submission, Response
 
 
@@ -105,7 +107,7 @@ class TestNextQuestionEndpoint:
         assert data["question_index"] == 1
         assert "question" in data
 
-    def test_next_question_end_survey_with_rejection(self, db_session, sample_survey_with_routing, sample_submission_with_routing):
+    def test_next_question_end_survey_with_rejection(self, client, db_session, sample_survey_with_routing, sample_submission_with_routing):
         """Test end_survey action with automatic rejection"""
         # Create response that triggers end_survey routing rule
         response = Response(
@@ -117,23 +119,11 @@ class TestNextQuestionEndpoint:
         db_session.add(response)
         db_session.commit()
 
-        # Override get_db dependency
-        def override_get_db():
-            try:
-                yield db_session
-            finally:
-                pass
-
-        app.dependency_overrides[get_db] = override_get_db
-
         # Call next-question endpoint
         response = client.get(
             f"/api/submissions/{sample_submission_with_routing.id}/next-question",
             params={"current_question_id": "q1_screening"}
         )
-
-        # Clean up override
-        app.dependency_overrides.clear()
 
         assert response.status_code == 200
         data = response.json()
@@ -148,7 +138,7 @@ class TestNextQuestionEndpoint:
         assert sample_submission_with_routing.is_completed is True
         assert sample_submission_with_routing.is_approved is False
 
-    def test_next_question_goto_question_action(self, db_session):
+    def test_next_question_goto_question_action(self, client, db_session):
         """Test goto_question routing action"""
         # Create survey with skip logic
         survey = Survey(
@@ -226,25 +216,11 @@ class TestNextQuestionEndpoint:
         )
         db_session.add(response)
         db_session.commit()
-
-        # Override get_db dependency
-        def override_get_db():
-            try:
-                yield db_session
-            finally:
-                pass
-
-        app.dependency_overrides[get_db] = override_get_db
-
         # Call next-question endpoint
         response = client.get(
             f"/api/submissions/{submission.id}/next-question",
             params={"current_question_id": "q1_has_children"}
         )
-
-        # Clean up override
-        app.dependency_overrides.clear()
-
         assert response.status_code == 200
         data = response.json()
 
@@ -253,7 +229,7 @@ class TestNextQuestionEndpoint:
         assert data["next_question_id"] == "q4_employment"
         assert data["question_index"] == 3
 
-    def test_next_question_invalid_submission(self, db_session):
+    def test_next_question_invalid_submission(self, client, db_session):
         """Test next-question with invalid submission ID"""
         def override_get_db():
             try:
@@ -272,7 +248,7 @@ class TestNextQuestionEndpoint:
 
         assert response.status_code == 404
 
-    def test_next_question_invalid_question_id(self, db_session, sample_survey_with_routing, sample_submission_with_routing):
+    def test_next_question_invalid_question_id(self, client, db_session, sample_survey_with_routing, sample_submission_with_routing):
         """Test next-question with invalid question ID"""
         def override_get_db():
             try:
@@ -295,7 +271,7 @@ class TestNextQuestionEndpoint:
 class TestRoutingWithMultipleConditions:
     """Test routing with multiple conditions (AND logic)"""
 
-    def test_multiple_conditions_all_match(self, db_session):
+    def test_multiple_conditions_all_match(self, client, db_session):
         """Test routing when all conditions match"""
         # Create survey with multiple conditions
         survey = Survey(
@@ -378,16 +354,6 @@ class TestRoutingWithMultipleConditions:
         db_session.add(response1)
         db_session.add(response2)
         db_session.commit()
-
-        # Override get_db dependency
-        def override_get_db():
-            try:
-                yield db_session
-            finally:
-                pass
-
-        app.dependency_overrides[get_db] = override_get_db
-
         # Call next-question endpoint
         response = client.get(
             f"/api/submissions/{submission.id}/next-question",
@@ -410,7 +376,7 @@ class TestRoutingWithMultipleConditions:
 class TestRoutingWithMultiChoice:
     """Test routing with multi-choice questions"""
 
-    def test_contains_operator_with_multi_choice(self, db_session):
+    def test_contains_operator_with_multi_choice(self, client, db_session):
         """Test routing with contains operator on multi-choice"""
         survey = Survey(
             survey_slug="multi-choice-routing",

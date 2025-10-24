@@ -116,10 +116,10 @@ def create_response(request: Request, submission_id: int, response: survey_schem
     # Trigger AI analysis for photo/video responses
     if response.question_type == "photo" and response.photo_url:
         logger.info(f"📷 Queueing photo analysis for response {created_response.id}: {response.photo_url}")
-        background_tasks.add_task(analyze_media_content_background, created_response.id, db)
+        background_tasks.add_task(analyze_media_content_background, created_response.id)
     elif response.question_type == "video" and response.video_url:
         logger.info(f"🎥 Queueing video analysis for response {created_response.id}: {response.video_url}")
-        background_tasks.add_task(analyze_media_content_background, created_response.id, db)
+        background_tasks.add_task(analyze_media_content_background, created_response.id)
     else:
         logger.info(f"📝 Response {created_response.id} - no media to analyze (type: {response.question_type})")
 

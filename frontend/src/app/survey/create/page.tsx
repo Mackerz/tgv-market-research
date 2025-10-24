@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   PlusIcon,
   TrashIcon,
@@ -67,16 +67,59 @@ const routingActions = [
   { value: 'end_survey', label: 'End Survey' }
 ];
 
-export default function CreateSurveyPage() {
+function CreateSurveyForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editSlug = searchParams.get('edit'); // Get the survey slug to edit
+  const isEditMode = !!editSlug;
+
+  const [surveyId, setSurveyId] = useState<number | null>(null);
   const [surveySlug, setSurveySlug] = useState('');
   const [surveyName, setSurveyName] = useState('');
   const [client, setClient] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [completeRedirectUrl, setCompleteRedirectUrl] = useState('');
+  const [screenoutRedirectUrl, setScreenoutRedirectUrl] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch survey data when in edit mode
+  useEffect(() => {
+    if (isEditMode && editSlug) {
+      const fetchSurvey = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(apiUrl(`/api/surveys/slug/${editSlug}`));
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch survey');
+          }
+
+          const surveyData = await response.json();
+
+          // Pre-fill form fields
+          setSurveyId(surveyData.id);
+          setSurveySlug(surveyData.survey_slug);
+          setSurveyName(surveyData.name);
+          setClient(surveyData.client || '');
+          setIsActive(surveyData.is_active);
+          setCompleteRedirectUrl(surveyData.complete_redirect_url || '');
+          setScreenoutRedirectUrl(surveyData.screenout_redirect_url || '');
+          setQuestions(surveyData.survey_flow || []);
+        } catch (err) {
+          console.error('Error fetching survey:', err);
+          setError(err instanceof Error ? err.message : 'Failed to load survey');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSurvey();
+    }
+  }, [isEditMode, editSlug]);
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -195,6 +238,41 @@ export default function CreateSurveyPage() {
     setQuestions(newQuestions);
   };
 
+  const handleExportSurvey = async () => {
+    if (!surveySlug) {
+      alert('Please save the survey first before exporting');
+      return;
+    }
+
+    try {
+      // Fetch the full survey details including survey_flow using the slug endpoint
+      const response = await fetch(apiUrl(`/api/surveys/slug/${surveySlug}`));
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch survey details');
+      }
+
+      const surveyData = await response.json();
+
+      // Create a formatted JSON with proper indentation
+      const jsonString = JSON.stringify(surveyData, null, 2);
+
+      // Create a blob and download it
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${surveySlug}-metadata.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting survey:', err);
+      alert('Failed to export survey. Please try again.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -294,19 +372,31 @@ export default function CreateSurveyPage() {
         return cleaned;
       });
 
-      const response = await fetch(apiUrl('/api/surveys/'), {
-        method: 'POST',
+      // Determine API endpoint and method based on mode
+      const apiEndpoint = isEditMode ? apiUrl(`/api/surveys/${surveyId}`) : apiUrl('/api/surveys/');
+      const httpMethod = isEditMode ? 'PUT' : 'POST';
+
+      const requestBody: any = {
+        name: surveyName,
+        ...(client && client.trim() !== '' ? { client } : {}),
+        is_active: isActive,
+        survey_flow: cleanedQuestions,
+        ...(completeRedirectUrl && completeRedirectUrl.trim() !== '' ? { complete_redirect_url: completeRedirectUrl } : {}),
+        ...(screenoutRedirectUrl && screenoutRedirectUrl.trim() !== '' ? { screenout_redirect_url: screenoutRedirectUrl } : {})
+      };
+
+      // Only include survey_slug for POST (create)
+      if (!isEditMode) {
+        requestBody.survey_slug = surveySlug;
+      }
+
+      const response = await fetch(apiEndpoint, {
+        method: httpMethod,
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          survey_slug: surveySlug,
-          name: surveyName,
-          ...(client && client.trim() !== '' ? { client } : {}),
-          is_active: isActive,
-          survey_flow: cleanedQuestions
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -334,7 +424,7 @@ export default function CreateSurveyPage() {
       }
 
       const data = await response.json();
-      alert('Survey created successfully!');
+      alert(isEditMode ? 'Survey updated successfully!' : 'Survey created successfully!');
       router.push(`/report/${data.survey_slug}`);
     } catch (err) {
       console.error('Error creating survey:', err);
@@ -348,13 +438,24 @@ export default function CreateSurveyPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Survey</h1>
-          <p className="text-gray-600">Design a survey with questions, routing, and media</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {isEditMode ? 'Edit Survey' : 'Create New Survey'}
+          </h1>
+          <p className="text-gray-600">
+            {isEditMode ? 'Update your survey configuration' : 'Design a survey with questions, routing, and media'}
+          </p>
         </div>
+
+        {loading && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-700">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 inline-block mr-3"></div>
+            Loading survey data...
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-            <div className="font-semibold mb-2">Error Creating Survey</div>
+            <div className="font-semibold mb-2">{isEditMode ? 'Error Loading Survey' : 'Error Creating Survey'}</div>
             <pre className="text-sm whitespace-pre-wrap font-mono">{error}</pre>
           </div>
         )}
@@ -375,8 +476,12 @@ export default function CreateSurveyPage() {
                   placeholder="my-survey-slug"
                   className="w-full px-3 py-2 border rounded-md text-gray-900 bg-white placeholder-gray-400"
                   required
+                  disabled={isEditMode}
+                  title={isEditMode ? 'Survey slug cannot be changed' : ''}
                 />
-                <p className="text-xs text-gray-500 mt-1">URL-friendly identifier (lowercase, hyphens only)</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {isEditMode ? 'Survey slug cannot be changed after creation' : 'URL-friendly identifier (lowercase, hyphens only)'}
+                </p>
               </div>
 
               <div>
@@ -416,6 +521,34 @@ export default function CreateSurveyPage() {
                   />
                   <span className="text-sm font-medium text-gray-700">Survey is Active</span>
                 </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Complete Redirect URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={completeRedirectUrl}
+                  onChange={(e) => setCompleteRedirectUrl(e.target.value)}
+                  placeholder="https://partner.com/complete"
+                  className="w-full px-3 py-2 border rounded-md text-gray-900 bg-white placeholder-gray-400"
+                />
+                <p className="text-xs text-gray-500 mt-1">Redirect URL when survey is completed</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Screenout Redirect URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={screenoutRedirectUrl}
+                  onChange={(e) => setScreenoutRedirectUrl(e.target.value)}
+                  placeholder="https://partner.com/screenout"
+                  className="w-full px-3 py-2 border rounded-md text-gray-900 bg-white placeholder-gray-400"
+                />
+                <p className="text-xs text-gray-500 mt-1">Redirect URL when survey is screened out (early termination)</p>
               </div>
             </div>
           </div>
@@ -469,23 +602,37 @@ export default function CreateSurveyPage() {
           </div>
 
           {/* Submit */}
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className={`px-6 py-3 rounded-md text-white font-medium ${
-                saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {saving ? 'Creating...' : 'Create Survey'}
-            </button>
+          <div className="flex justify-between items-center">
+            <div>
+              {isEditMode && (
+                <button
+                  type="button"
+                  onClick={handleExportSurvey}
+                  className="px-6 py-3 border border-purple-300 rounded-md text-purple-700 hover:bg-purple-50 font-medium"
+                  title="Export survey metadata as JSON"
+                >
+                  Export JSON
+                </button>
+              )}
+            </div>
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving || loading}
+                className={`px-6 py-3 rounded-md text-white font-medium ${
+                  saving || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {saving ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Survey' : 'Create Survey')}
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -893,5 +1040,20 @@ function QuestionBuilder({
         </div>
       )}
     </div>
+  );
+}
+
+export default function CreateSurveyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <CreateSurveyForm />
+    </Suspense>
   );
 }

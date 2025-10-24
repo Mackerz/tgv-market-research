@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import PersonalInfoForm from "@/components/survey/PersonalInfoForm";
 import QuestionComponent from "@/components/survey/QuestionComponent";
 import SurveyComplete from "@/components/survey/SurveyComplete";
@@ -14,9 +14,14 @@ type SurveyStep = 'personal-info' | 'questions' | 'complete';
 export default function SurveyPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const surveySlug = params.slug as string;
 
+  // Capture external_user_id from query parameter
+  const externalUserId = searchParams.get('user_id');
+
   const [currentStep, setCurrentStep] = useState<SurveyStep>('personal-info');
+  const [isScreenedOut, setIsScreenedOut] = useState(false);
 
   // Use the new useSurvey hook
   const {
@@ -41,7 +46,7 @@ export default function SurveyPage() {
     gender: string
   ) => {
     try {
-      await startSurvey(email, phone_number, region, date_of_birth, gender);
+      await startSurvey(email, phone_number, region, date_of_birth, gender, externalUserId || undefined);
       setCurrentStep('questions');
     } catch (err) {
       console.error('Failed to start survey:', err);
@@ -122,10 +127,18 @@ export default function SurveyPage() {
             progress={progress}
             onQuestionComplete={handleQuestionComplete}
             onSurveyComplete={handleSurveyComplete}
+            onScreenedOut={() => setIsScreenedOut(true)}
           />
         )}
 
-        {currentStep === 'complete' && <SurveyComplete surveyName={survey.name} />}
+        {currentStep === 'complete' && (
+          <SurveyComplete
+            surveyName={survey.name}
+            completeRedirectUrl={isScreenedOut ? survey.screenout_redirect_url : survey.complete_redirect_url}
+            externalUserId={externalUserId}
+            isScreenedOut={isScreenedOut}
+          />
+        )}
       </div>
     </div>
   );

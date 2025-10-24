@@ -12,6 +12,8 @@ export interface Survey {
   client?: string;
   created_at?: string;
   updated_at?: string;
+  complete_redirect_url?: string;
+  screenout_redirect_url?: string;
 }
 
 export interface QuestionMedia {
@@ -82,6 +84,7 @@ export interface Submission {
   submitted_at: string;
   is_approved: boolean | null;
   is_completed: boolean;
+  external_user_id?: string;
 }
 
 export interface SubmissionCreate {
@@ -91,6 +94,7 @@ export interface SubmissionCreate {
   region: string;
   date_of_birth: string;
   gender: string;
+  external_user_id?: string;
 }
 
 export interface Response {

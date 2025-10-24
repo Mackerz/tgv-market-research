@@ -228,7 +228,7 @@ def create_media_analysis_service(db: Session) -> MediaAnalysisService:
     return MediaAnalysisService(db)
 
 
-def analyze_media_content_background(response_id: int, db_session: Session):
+def analyze_media_content_background(response_id: int):
     """
     Background task to analyze media content for a response.
 
@@ -236,15 +236,23 @@ def analyze_media_content_background(response_id: int, db_session: Session):
     It automatically detects the media type (photo or video) and runs
     the appropriate analysis pipeline.
 
+    IMPORTANT: This function creates its own database session to avoid
+    issues with the FastAPI dependency injection session being closed
+    before the background task completes.
+
     Args:
         response_id: The response ID to analyze
-        db_session: Database session
 
     Note:
         This replaces the duplicate analyze_media_content functions
         that were previously in media.py and submissions.py
     """
+    from app.core.database import SessionLocal
+
     logger.info_start("background media analysis", response_id=response_id)
+
+    # Create a new database session for this background task
+    db_session = SessionLocal()
 
     try:
         # Get response from database
@@ -285,3 +293,6 @@ def analyze_media_content_background(response_id: int, db_session: Session):
     except Exception as e:
         logger.error_failed("background media analysis", e, response_id=response_id)
         raise
+    finally:
+        # Always close the database session
+        db_session.close()

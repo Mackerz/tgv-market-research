@@ -32,7 +32,8 @@ interface UseSurveyReturn {
     phone_number: string,
     region: string,
     date_of_birth: string,
-    gender: string
+    gender: string,
+    external_user_id?: string
   ) => Promise<void>;
   submitResponse: (response: ResponseCreate) => Promise<void>;
   nextQuestion: () => void;
@@ -71,7 +72,8 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
     phone_number: string,
     region: string,
     date_of_birth: string,
-    gender: string
+    gender: string,
+    external_user_id?: string
   ) => {
     try {
       setResponseLoading(true);
@@ -83,6 +85,7 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
         region,
         date_of_birth,
         gender,
+        external_user_id,
       });
 
       setSubmission(newSubmission);
