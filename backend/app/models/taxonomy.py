@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, Index
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -25,6 +25,11 @@ class ReportingLabel(Base):
     # Relationships
     survey = relationship("Survey", back_populates="reporting_labels")
     label_mappings = relationship("LabelMapping", back_populates="reporting_label", cascade="all, delete-orphan")
+
+    # Composite index for filtering by survey and label name
+    __table_args__ = (
+        Index('ix_reporting_label_survey_name', 'survey_id', 'label_name'),
+    )
 
 
 class LabelMapping(Base):

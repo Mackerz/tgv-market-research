@@ -8,20 +8,14 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app/api/v1/media.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/media.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/api/v1/submissions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/media.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/media.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/survey.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/taxonomy.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/taxonomy.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app/schemas/survey.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/survey.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app/services/media_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/services/media_analysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/utils/routing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/api/test_auth_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/api/test_auth_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/tests/api/test_routing_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/tests/api/test_routing_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/report/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/survey/[slug]/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/survey/create/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/survey/create/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/PersonalInfoForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/PersonalInfoForm.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/QuestionComponent.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/survey/SurveyComplete.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/survey/SurveyComplete.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/hooks/useSurvey.ts" afterDir="false" />
@@ -145,7 +139,7 @@
       <workItem from="1759847874343" duration="1314000" />
       <workItem from="1760387136438" duration="32145000" />
       <workItem from="1761163003405" duration="8770000" />
-      <workItem from="1761206499000" duration="30527000" />
+      <workItem from="1761206499000" duration="31259000" />
     </task>
     <task id="LOCAL-00001" summary="initial system">
       <option name="closed" value="true" />

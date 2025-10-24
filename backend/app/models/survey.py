@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -54,6 +54,14 @@ class Submission(Base):
     survey = relationship("Survey", back_populates="submissions")
     responses = relationship("Response", back_populates="submission")
 
+    # Composite indexes for frequently queried combinations
+    __table_args__ = (
+        Index('ix_submission_survey_approved', 'survey_id', 'is_approved'),
+        Index('ix_submission_survey_completed', 'survey_id', 'is_completed'),
+        Index('ix_submission_survey_approved_completed', 'survey_id', 'is_approved', 'is_completed'),
+        Index('ix_submission_demographics', 'survey_id', 'region', 'gender'),
+    )
+
     @hybrid_property
     def calculated_age(self):
         """Calculate age based on date_of_birth and submitted_at"""
@@ -100,3 +108,8 @@ class Response(Base):
     # Relationships
     submission = relationship("Submission", back_populates="responses")
     media_analysis = relationship("Media", back_populates="response")
+
+    # Composite index for filtering by submission and question type
+    __table_args__ = (
+        Index('ix_response_submission_type', 'submission_id', 'question_type'),
+    )
