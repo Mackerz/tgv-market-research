@@ -3,7 +3,7 @@
  * Displays detailed view of a single submission with all responses
  */
 
-import type { Submission, Response } from '@/types';
+import type { Submission, Response } from './types';
 
 interface SubmissionDetailProps {
   submission: Submission;
