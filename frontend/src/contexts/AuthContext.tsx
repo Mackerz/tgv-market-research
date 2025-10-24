@@ -1,7 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { apiUrl } from '@/config/api'
+import { logger } from '@/lib/logger'
+import { authService, type User as AuthUser } from '@/lib/api/services/auth'
 
 interface User {
   id: number
@@ -29,18 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch(apiUrl('/api/auth/me'), {
-        credentials: 'include',
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else {
-        setUser(null)
-      }
+      const userData = await authService.getMe()
+      setUser(userData)
     } catch (error) {
-      console.error('Auth check failed:', error)
+      logger.error('Auth check failed:', error)
       setUser(null)
     } finally {
       setLoading(false)
@@ -52,48 +45,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (username: string, password: string) => {
-    const response = await fetch(apiUrl('/api/auth/login'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ username, password }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || 'Login failed')
-    }
-
-    const data = await response.json()
-    setUser(data.user)
+    const data = await authService.login(username, password)
+    setUser(data)
   }
 
   const loginWithGoogle = async (credential: string) => {
-    const response = await fetch(apiUrl('/api/auth/google'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ credential }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || 'Google login failed')
-    }
-
-    const data = await response.json()
-    setUser(data.user)
+    const data = await authService.googleLogin(credential)
+    setUser(data)
   }
 
   const logout = async () => {
-    await fetch(apiUrl('/api/auth/logout'), {
-      method: 'POST',
-      credentials: 'include',
-    })
+    await authService.logout()
     setUser(null)
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from '@/lib/logger';
 import FreeTextQuestion from "./questions/FreeTextQuestion";
 import SingleChoiceQuestion from "./questions/SingleChoiceQuestion";
 import MultipleChoiceQuestion from "./questions/MultipleChoiceQuestion";
@@ -108,7 +109,7 @@ export default function QuestionComponent({
         }
       }
     } catch (error) {
-      console.error('Error submitting answer:', error);
+      logger.error('Error submitting answer:', error);
       if (error instanceof ApiError) {
         setError(error.message);
       } else {

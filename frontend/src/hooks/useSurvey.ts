@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { surveyService } from '@/lib/api';
 import type { Survey, SurveyQuestion, Submission, Response, ResponseCreate, SurveyProgress, NextQuestionResponse } from '@/types';
 import { useApi } from './useApi';
@@ -183,7 +184,7 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
         }
       }
     } catch (err) {
-      console.error('Error in routing logic:', err);
+      logger.error('Error in routing logic:', err);
       // Fallback to sequential navigation
       if (currentIndex < survey.survey_flow.length - 1) {
         setCurrentIndex(prev => prev + 1);
@@ -207,7 +208,7 @@ export function useSurvey({ surveySlug, onComplete }: UseSurveyOptions): UseSurv
       const updatedProgress = await surveyService.getProgress(submission.id);
       setProgress(updatedProgress);
     } catch (err) {
-      console.error('Failed to refetch progress:', err);
+      logger.error('Failed to refetch progress:', err);
     }
   }, [submission]);
 

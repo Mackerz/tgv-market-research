@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from '@/lib/logger';
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import PersonalInfoForm from "@/components/survey/PersonalInfoForm";
 import QuestionComponent from "@/components/survey/QuestionComponent";
@@ -49,7 +50,7 @@ export default function SurveyPage() {
       await startSurvey(email, phone_number, region, date_of_birth, gender, externalUserId || undefined);
       setCurrentStep('questions');
     } catch (err) {
-      console.error('Failed to start survey:', err);
+      logger.error('Failed to start survey:', err);
     }
   };
 
@@ -61,7 +62,7 @@ export default function SurveyPage() {
     try {
       await completeAndSubmit();
     } catch (err) {
-      console.error('Failed to complete survey:', err);
+      logger.error('Failed to complete survey:', err);
     }
   };
 

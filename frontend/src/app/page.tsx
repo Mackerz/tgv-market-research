@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from '@/lib/logger';
 import { apiUrl } from '../config/api';
+import { surveyService } from '@/lib/api';
+import type { QuestionType } from '@/types/survey';
 
 interface User {
   id: number;
@@ -42,7 +45,7 @@ export default function Home() {
         fetchPosts();
       })
       .catch(err => {
-        console.error('API connection failed:', err);
+        logger.error('API connection failed:', err);
         setLoading(false);
       });
   }, []);
@@ -53,7 +56,7 @@ export default function Home() {
       const data = await response.json();
       setUsers(data);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      logger.error('Failed to fetch users:', error);
     }
   };
 
@@ -63,7 +66,7 @@ export default function Home() {
       const data = await response.json();
       setPosts(data);
     } catch (error) {
-      console.error('Failed to fetch posts:', error);
+      logger.error('Failed to fetch posts:', error);
     }
   };
 
@@ -80,7 +83,7 @@ export default function Home() {
         fetchUsers();
       }
     } catch (error) {
-      console.error('Failed to create user:', error);
+      logger.error('Failed to create user:', error);
     }
   };
 
@@ -98,7 +101,7 @@ export default function Home() {
         fetchPosts();
       }
     } catch (error) {
-      console.error('Failed to create post:', error);
+      logger.error('Failed to create post:', error);
     }
   };
 
@@ -111,55 +114,45 @@ export default function Home() {
           {
             id: 'q1',
             question: 'What is your favorite color?',
-            question_type: 'single',
+            question_type: 'single' as QuestionType,
             required: true,
             options: ['Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Other']
           },
           {
             id: 'q2',
             question: 'Which of these activities do you enjoy? (Select all that apply)',
-            question_type: 'multi',
+            question_type: 'multi' as QuestionType,
             required: true,
             options: ['Reading', 'Sports', 'Music', 'Gaming', 'Cooking', 'Travel', 'Photography']
           },
           {
             id: 'q3',
             question: 'Please tell us about your hobbies and interests in detail.',
-            question_type: 'free_text',
+            question_type: 'free_text' as QuestionType,
             required: true
           },
           {
             id: 'q4',
             question: 'Upload a photo that represents your favorite hobby.',
-            question_type: 'photo',
+            question_type: 'photo' as QuestionType,
             required: false
           },
           {
             id: 'q5',
             question: 'Record a short video introducing yourself (optional).',
-            question_type: 'video',
+            question_type: 'video' as QuestionType,
             required: false
           }
         ],
         is_active: true
       };
 
-      const response = await fetch(apiUrl('/api/surveys/'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(demoSurvey),
-      });
-
-      if (response.ok) {
-        const survey = await response.json();
-        alert(`Demo survey created! Visit: /survey/${survey.survey_slug}`);
-        // Open in new tab
-        window.open(`/survey/${survey.survey_slug}`, '_blank');
-      } else {
-        throw new Error('Failed to create survey');
-      }
+      const survey = await surveyService.createSurvey(demoSurvey);
+      alert(`Demo survey created! Visit: /survey/${survey.survey_slug}`);
+      // Open in new tab
+      window.open(`/survey/${survey.survey_slug}`, '_blank');
     } catch (error) {
-      console.error('Failed to create demo survey:', error);
+      logger.error('Failed to create demo survey:', error);
       alert('Failed to create demo survey');
     }
   };

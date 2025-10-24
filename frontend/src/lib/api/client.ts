@@ -4,6 +4,7 @@
  */
 
 import { apiUrl } from '@/config/api';
+import { logger } from '@/lib/logger';
 
 export class ApiError extends Error {
   constructor(
@@ -81,8 +82,16 @@ class ApiClient {
   /**
    * Make a DELETE request
    */
-  async delete<T>(endpoint: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(endpoint, { ...config, method: 'DELETE' });
+  async delete<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...config,
+      method: 'DELETE',
+      body: data ? JSON.stringify(data) : undefined,
+      headers: {
+        'Content-Type': 'application/json',
+        ...config?.headers,
+      },
+    });
   }
 
   /**
@@ -168,7 +177,7 @@ class ApiClient {
 
       // Retry logic for network errors
       if (retry > 0 && error instanceof TypeError) {
-        console.warn(`Request failed, retrying... (${retry} attempts left)`);
+        logger.warn(`Request failed, retrying... (${retry} attempts left)`);
         await this.delay(1000);
         return this.request<T>(endpoint, { ...config, retry: retry - 1 });
       }

@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
-import { apiUrl } from '@/config/api'
 import { surveyService } from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 interface Survey {
   id: number
   name: string
   survey_slug: string
-  client: string | null
-  created_at: string
+  client?: string
+  created_at?: string
   is_active: boolean
 }
 
@@ -34,29 +34,18 @@ export default function SurveysListPage() {
   const fetchSurveys = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-
-      if (searchTerm) {
-        params.append('search', searchTerm)
-      }
-      if (clientFilter) {
-        params.append('client', clientFilter)
-      }
-      params.append('sort_by', sortBy)
-      params.append('sort_order', sortOrder)
-      params.append('active_only', 'false') // Show all surveys
-
-      const response = await fetch(apiUrl(`/api/surveys/?${params}`))
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch surveys')
-      }
-
-      const data = await response.json()
+      const data = await surveyService.listSurveys({
+        search: searchTerm || undefined,
+        client: clientFilter || undefined,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        active_only: false,
+      })
       setSurveys(data)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
+      logger.error('Failed to fetch surveys:', err)
       setSurveys(null)
     } finally {
       setLoading(false)
@@ -82,7 +71,7 @@ export default function SurveysListPage() {
       // Refresh the survey list
       fetchSurveys()
     } catch (err) {
-      console.error('Error toggling survey status:', err)
+      logger.error('Error toggling survey status:', err)
       alert('Failed to update survey status. Please try again.')
     }
   }
@@ -90,13 +79,7 @@ export default function SurveysListPage() {
   const handleExportSurvey = async (surveySlug: string, surveyName: string) => {
     try {
       // Fetch the full survey details including survey_flow using the slug endpoint
-      const response = await fetch(apiUrl(`/api/surveys/slug/${surveySlug}`))
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch survey details')
-      }
-
-      const surveyData = await response.json()
+      const surveyData = await surveyService.getSurveyBySlug(surveySlug)
 
       // Create a formatted JSON with proper indentation
       const jsonString = JSON.stringify(surveyData, null, 2)
@@ -112,7 +95,7 @@ export default function SurveysListPage() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } catch (err) {
-      console.error('Error exporting survey:', err)
+      logger.error('Error exporting survey:', err)
       alert('Failed to export survey. Please try again.')
     }
   }
@@ -280,7 +263,9 @@ export default function SurveysListPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatDate(survey.created_at)}</div>
+                      <div className="text-sm text-gray-900">
+                        {survey.created_at ? formatDate(survey.created_at) : '-'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-3">

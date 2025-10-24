@@ -49,6 +49,20 @@ export const surveyService = {
   },
 
   /**
+   * Create a new survey
+   */
+  createSurvey: (data: Omit<Survey, 'id' | 'created_at' | 'updated_at'>) => {
+    return apiClient.post<Survey>('/api/surveys/', data);
+  },
+
+  /**
+   * Update a survey
+   */
+  updateSurvey: (surveyId: number, data: Partial<Omit<Survey, 'id' | 'created_at' | 'updated_at'>>) => {
+    return apiClient.put<Survey>(`/api/surveys/${surveyId}`, data);
+  },
+
+  /**
    * Create a submission
    */
   createSubmission: (slug: string, data: Omit<SubmissionCreate, 'survey_id'>) => {

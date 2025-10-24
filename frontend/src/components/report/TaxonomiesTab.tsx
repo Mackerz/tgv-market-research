@@ -9,8 +9,8 @@ import {
   ReportingLabelUpdate,
   ReportingLabelCreate
 } from '@/types/taxonomy';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { logger } from '@/lib/logger';
+import { taxonomyService } from '@/lib/api';
 
 interface TaxonomiesTabProps {
   surveyId: number;
@@ -36,15 +36,10 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
   const fetchTaxonomy = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/surveys/${surveyId}/taxonomy`, {
-        credentials: 'include',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setTaxonomy(data);
-      }
+      const data = await taxonomyService.getTaxonomy(surveyId);
+      setTaxonomy(data);
     } catch (error) {
-      console.error('Error fetching taxonomy:', error);
+      logger.error('Error fetching taxonomy', error);
     } finally {
       setLoading(false);
     }
@@ -53,17 +48,10 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
   const generateTaxonomy = async () => {
     try {
       setGenerating(true);
-      const response = await fetch(`${API_URL}/api/surveys/${surveyId}/taxonomy/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ survey_id: surveyId, max_categories: 6 }),
-      });
-      if (response.ok) {
-        await fetchTaxonomy();
-      }
+      await taxonomyService.generateTaxonomy(surveyId, 6);
+      await fetchTaxonomy();
     } catch (error) {
-      console.error('Error generating taxonomy:', error);
+      logger.error('Error generating taxonomy:', error);
     } finally {
       setGenerating(false);
     }
@@ -71,50 +59,30 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
 
   const fetchMediaPreviews = async (systemLabel: string) => {
     try {
-      const response = await fetch(
-        `${API_URL}/api/surveys/${surveyId}/system-labels/${encodeURIComponent(systemLabel)}/media?limit=5`,
-        { credentials: 'include' }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setMediaPreviews(data);
-      }
+      const data = await taxonomyService.getMediaPreviews(surveyId, systemLabel, 5);
+      setMediaPreviews(data);
     } catch (error) {
-      console.error('Error fetching media previews:', error);
+      logger.error('Error fetching media previews:', error);
     }
   };
 
   const addSystemLabel = async (reportingLabelId: number, systemLabel: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/reporting-labels/${reportingLabelId}/system-labels`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ system_label: systemLabel }),
-      });
-      if (response.ok) {
-        await fetchTaxonomy();
-        setSelectedLabel(null);
-        setMediaPreviews([]);
-      }
+      await taxonomyService.addSystemLabel(reportingLabelId, systemLabel);
+      await fetchTaxonomy();
+      setSelectedLabel(null);
+      setMediaPreviews([]);
     } catch (error) {
-      console.error('Error adding system label:', error);
+      logger.error('Error adding system label:', error);
     }
   };
 
   const removeSystemLabel = async (reportingLabelId: number, systemLabel: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/reporting-labels/${reportingLabelId}/system-labels`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ system_label: systemLabel }),
-      });
-      if (response.ok) {
-        await fetchTaxonomy();
-      }
+      await taxonomyService.removeSystemLabel(reportingLabelId, systemLabel);
+      await fetchTaxonomy();
     } catch (error) {
-      console.error('Error removing system label:', error);
+      logger.error('Error removing system label:', error);
     }
   };
 
@@ -124,18 +92,11 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
         label_name: editName,
         description: editDescription || undefined,
       };
-      const response = await fetch(`${API_URL}/api/reporting-labels/${labelId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(updateData),
-      });
-      if (response.ok) {
-        await fetchTaxonomy();
-        setEditingLabel(null);
-      }
+      await taxonomyService.updateReportingLabel(labelId, updateData);
+      await fetchTaxonomy();
+      setEditingLabel(null);
     } catch (error) {
-      console.error('Error updating label:', error);
+      logger.error('Error updating label:', error);
     }
   };
 
@@ -148,20 +109,13 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
         is_ai_generated: false,
         system_labels: [],
       };
-      const response = await fetch(`${API_URL}/api/reporting-labels`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(createData),
-      });
-      if (response.ok) {
-        await fetchTaxonomy();
-        setCreatingNew(false);
-        setNewLabelName('');
-        setNewLabelDescription('');
-      }
+      await taxonomyService.createReportingLabel(createData);
+      await fetchTaxonomy();
+      setCreatingNew(false);
+      setNewLabelName('');
+      setNewLabelDescription('');
     } catch (error) {
-      console.error('Error creating label:', error);
+      logger.error('Error creating label:', error);
     }
   };
 
@@ -170,17 +124,11 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/api/reporting-labels/${labelId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (response.ok) {
-        await fetchTaxonomy();
-      } else {
-        alert('Cannot delete label. Remove all system label mappings first.');
-      }
+      await taxonomyService.deleteReportingLabel(labelId);
+      await fetchTaxonomy();
     } catch (error) {
-      console.error('Error deleting label:', error);
+      logger.error('Error deleting label:', error);
+      alert('Cannot delete label. Remove all system label mappings first.');
     }
   };
 

@@ -24,8 +24,17 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": "warn",
       "react/no-unescaped-entities": "warn",
       "@next/next/no-img-element": "warn",
-      "react-hooks/exhaustive-deps": "warn"
+      "react-hooks/exhaustive-deps": "warn",
+      // Prevent console statements - use logger instead
+      "no-console": ["error", { allow: ["time", "timeEnd", "table", "group", "groupEnd"] }]
     },
+  },
+  // Allow console statements only in logger.ts
+  {
+    files: ["src/lib/logger.ts"],
+    rules: {
+      "no-console": "off"
+    }
   },
 ];
 

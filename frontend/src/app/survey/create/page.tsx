@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { logger } from '@/lib/logger';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { apiUrl } from '@/config/api';
+import { surveyService } from '@/lib/api';
 import { Question, QuestionMedia, RoutingRule } from '@/components/survey-create/types';
 import QuestionBuilder from '@/components/survey-create/QuestionBuilder';
 import SurveyDetailsForm from '@/components/survey-create/SurveyDetailsForm';
@@ -33,13 +34,7 @@ function CreateSurveyForm() {
       const fetchSurvey = async () => {
         try {
           setLoading(true);
-          const response = await fetch(apiUrl(`/api/surveys/slug/${editSlug}`));
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch survey');
-          }
-
-          const surveyData = await response.json();
+          const surveyData = await surveyService.getSurveyBySlug(editSlug);
 
           // Pre-fill form fields
           setSurveyId(surveyData.id);
@@ -51,7 +46,7 @@ function CreateSurveyForm() {
           setScreenoutRedirectUrl(surveyData.screenout_redirect_url || '');
           setQuestions(surveyData.survey_flow || []);
         } catch (err) {
-          console.error('Error fetching survey:', err);
+          logger.error('Error fetching survey:', err);
           setError(err instanceof Error ? err.message : 'Failed to load survey');
         } finally {
           setLoading(false);
@@ -187,13 +182,7 @@ function CreateSurveyForm() {
 
     try {
       // Fetch the full survey details including survey_flow using the slug endpoint
-      const response = await fetch(apiUrl(`/api/surveys/slug/${surveySlug}`));
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch survey details');
-      }
-
-      const surveyData = await response.json();
+      const surveyData = await surveyService.getSurveyBySlug(surveySlug);
 
       // Create a formatted JSON with proper indentation
       const jsonString = JSON.stringify(surveyData, null, 2);
@@ -209,7 +198,7 @@ function CreateSurveyForm() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Error exporting survey:', err);
+      logger.error('Error exporting survey:', err);
       alert('Failed to export survey. Please try again.');
     }
   };
@@ -313,10 +302,6 @@ function CreateSurveyForm() {
         return cleaned;
       });
 
-      // Determine API endpoint and method based on mode
-      const apiEndpoint = isEditMode ? apiUrl(`/api/surveys/${surveyId}`) : apiUrl('/api/surveys/');
-      const httpMethod = isEditMode ? 'PUT' : 'POST';
-
       const requestBody: any = {
         name: surveyName,
         ...(client && client.trim() !== '' ? { client } : {}),
@@ -331,44 +316,13 @@ function CreateSurveyForm() {
         requestBody.survey_slug = surveySlug;
       }
 
-      const response = await fetch(apiEndpoint, {
-        method: httpMethod,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Survey creation error:', errorData);
-        console.error('Request payload:', JSON.stringify({
-          survey_slug: surveySlug,
-          name: surveyName,
-          ...(client && client.trim() !== '' ? { client } : {}),
-          is_active: isActive,
-          survey_flow: cleanedQuestions
-        }, null, 2));
-
-        // Format validation errors if present
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          const errorMessages = errorData.detail.map((err: any) => {
-            const location = err.loc ? err.loc.join(' -> ') : 'Unknown';
-            const input = err.input ? `\nInput: ${JSON.stringify(err.input)}` : '';
-            return `${location}: ${err.msg}${input}`;
-          }).join('\n\n');
-          throw new Error(`Validation errors:\n${errorMessages}`);
-        }
-
-        throw new Error(errorData.detail || 'Failed to create survey');
-      }
-
-      const data = await response.json();
+      const data = isEditMode && surveyId
+        ? await surveyService.updateSurvey(surveyId, requestBody)
+        : await surveyService.createSurvey(requestBody);
       alert(isEditMode ? 'Survey updated successfully!' : 'Survey created successfully!');
       router.push(`/report/${data.survey_slug}`);
     } catch (err) {
-      console.error('Error creating survey:', err);
+      logger.error('Error creating survey:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSaving(false);

@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { LockClosedIcon } from '@heroicons/react/24/outline'
+import { logger } from '@/lib/logger'
+import { authService } from '@/lib/api'
 
 declare global {
   interface Window {
@@ -43,15 +45,11 @@ function LoginPageContent() {
     // Check environment and Google SSO availability
     const checkConfig = async () => {
       try {
-        const apiUrlBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        const response = await fetch(`${apiUrlBase}/api/auth/check`, {
-          credentials: 'include',
-        })
-        const data = await response.json()
+        const data = await authService.checkAuthConfig()
         setEnvironment(data.environment)
         setGoogleEnabled(data.google_sso_enabled)
       } catch (error) {
-        console.error('Failed to check auth config:', error)
+        logger.error('Failed to check auth config:', error)
       }
     }
     checkConfig()

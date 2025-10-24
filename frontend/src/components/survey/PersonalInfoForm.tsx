@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { logger } from '@/lib/logger';
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { isValidEmail, isValidPhoneNumber } from "@/lib/security/sanitize";
 
@@ -113,7 +114,7 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
         formData.gender
       );
     } catch (error) {
-      console.error('Error submitting form:', error);
+      logger.error('Error submitting form:', error);
       setErrors({ submit: error instanceof Error ? error.message : 'An error occurred' });
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { logger } from '@/lib/logger';
 import { PhotoIcon, VideoCameraIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { surveyService } from "@/lib/api";
 import type { SurveyQuestion, FileUploadResponse, MediaUploadConfig } from "@/types";
@@ -93,7 +94,7 @@ export default function MediaUploadQuestion({
 
       setUploadedUrl(result.file_url);
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
       setError(error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setUploading(false);
