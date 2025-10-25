@@ -19,8 +19,10 @@ class GCPStorageManager:
             self.client = None
             self.photo_bucket = None
             self.video_bucket = None
+            self.question_media_bucket = None
             self.photo_bucket_name = "simulated-photos"
             self.video_bucket_name = "simulated-videos"
+            self.question_media_bucket_name = "simulated-question-media"
             self.project_id = "simulated-project"
             return
 
@@ -28,6 +30,7 @@ class GCPStorageManager:
         # Try to get individual bucket names from environment first, then fall back to generic bucket name
         self.photo_bucket_name = os.getenv("GCP_STORAGE_BUCKET_PHOTOS") or get_gcs_bucket_name() or "survey-photos-bucket"
         self.video_bucket_name = os.getenv("GCP_STORAGE_BUCKET_VIDEOS") or get_gcs_bucket_name() or "survey-videos-bucket"
+        self.question_media_bucket_name = os.getenv("GCP_STORAGE_BUCKET_QUESTION_MEDIA") or get_gcs_bucket_name() or "question-media-bucket"
         self.project_id = get_gcp_project_id() or os.getenv("GCP_PROJECT_ID", "your-project-id")
 
         try:
@@ -45,9 +48,11 @@ class GCPStorageManager:
 
             self.photo_bucket = self.client.bucket(self.photo_bucket_name)
             self.video_bucket = self.client.bucket(self.video_bucket_name)
+            self.question_media_bucket = self.client.bucket(self.question_media_bucket_name)
             logger.info("✅ GCP Storage initialized:")
             logger.info(f"   📷 Photos: {self.photo_bucket_name}")
             logger.info(f"   🎥 Videos: {self.video_bucket_name}")
+            logger.info(f"   📝 Question Media: {self.question_media_bucket_name}")
         except Exception as e:
             logger.error(f"❌ GCP Storage initialization failed: {e}")
             logger.warning("🔧 Falling back to development mode (uploads simulated)")
@@ -55,6 +60,7 @@ class GCPStorageManager:
             self.client = None
             self.photo_bucket = None
             self.video_bucket = None
+            self.question_media_bucket = None
 
     def _upload_to_bucket(self, file: UploadFile, survey_slug: str, file_id: str, bucket, bucket_name: str) -> str:
         """
@@ -125,6 +131,21 @@ class GCPStorageManager:
         thumbnail_url = None
 
         return video_url, thumbnail_url
+
+    def upload_question_media(self, file: UploadFile, file_id: str) -> str:
+        """
+        Upload a photo or video file for survey questions to the question media bucket
+        Returns the GCS URL of the uploaded file
+        """
+        # Validate file type
+        if not self._is_image_file(file.filename) and not self._is_video_file(file.filename):
+            raise ValueError("File must be an image or video")
+
+        if not self.enabled:
+            logger.debug(f"📝 Simulating question media upload: {file.filename}")
+
+        # For question media, we don't need survey_slug - using "questions" as prefix
+        return self._upload_to_bucket(file, "questions", file_id, self.question_media_bucket, self.question_media_bucket_name)
 
     def generate_signed_url(self, blob_path: str, expiration_hours: int = 24) -> str:
         """
@@ -202,3 +223,9 @@ def upload_survey_video(file: UploadFile, survey_slug: str) -> tuple[str, str, s
     file_id = str(uuid.uuid4())
     file_url, thumbnail_url = gcp_storage.upload_video(file, survey_slug, file_id)
     return file_url, file_id, thumbnail_url
+
+def upload_question_media(file: UploadFile) -> tuple[str, str]:
+    """Upload question media and return (file_url, file_id)"""
+    file_id = str(uuid.uuid4())
+    file_url = gcp_storage.upload_question_media(file, file_id)
+    return file_url, file_id

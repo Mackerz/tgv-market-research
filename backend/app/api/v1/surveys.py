@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.models import survey as survey_models
 from app.schemas import survey as survey_schemas
 from app.crud import survey as survey_crud
-from app.integrations.gcp.storage import upload_survey_photo, upload_survey_video
+from app.integrations.gcp.storage import upload_survey_photo, upload_survey_video, upload_question_media
 from app.dependencies import get_survey_or_404, get_survey_by_id_or_404
 from app.core.rate_limits import get_rate_limit
 from app.core.auth import RequireAPIKey
@@ -228,5 +228,54 @@ async def upload_video(request: Request, survey_slug: str, file: UploadFile = Fi
         import traceback
         logger = logging.getLogger(__name__)
         logger.error(f"Video upload failed: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="File upload failed")
+
+
+@router.post("/questions/upload/media", response_model=survey_schemas.FileUploadResponse)
+@limiter.limit(get_rate_limit("file_upload"))
+async def upload_question_media_file(
+    request: Request,
+    file: UploadFile = File(...),
+    api_key: str = RequireAPIKey
+):
+    """
+    Upload media (photo or video) for survey questions (ADMIN ONLY)
+
+    This endpoint is for uploading media that will be displayed as part of survey questions,
+    NOT for survey participant responses. Media is stored in a separate bucket.
+
+    Rate limit: 20/minute for cost control
+    Requires: X-API-Key header
+    """
+    # Validate file upload - check if it's an image or video
+    try:
+        # Try to validate as image first
+        validated_file = await FileValidator.validate_image(file)
+    except HTTPException:
+        # If not an image, try video
+        try:
+            # Reset file position
+            await file.seek(0)
+            validated_file = await FileValidator.validate_video(file)
+        except HTTPException:
+            raise HTTPException(
+                status_code=400,
+                detail="File must be an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, MOV)"
+            )
+
+    try:
+        file_url, file_id = upload_question_media(validated_file)
+        return survey_schemas.FileUploadResponse(
+            file_url=file_url,
+            file_id=file_id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import logging
+        import traceback
+        logger = logging.getLogger(__name__)
+        logger.error(f"Question media upload failed: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="File upload failed")
