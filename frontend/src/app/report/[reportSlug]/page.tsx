@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import MediaGallery from '../../components/MediaGallery'
 import {
@@ -47,6 +47,7 @@ export default function ReportPage() {
     // Reporting data
     reportingData,
     reportingLoading,
+    fetchReportingData,
 
     // Actions
     fetchSubmissionDetail,
@@ -70,6 +71,14 @@ export default function ReportPage() {
     updateQuestionDisplayName,
     saveQuestionDisplayNames
   } = useReportSettings(reportSlug, activeTab)
+
+  // Fetch reporting data when Reporting tab is accessed
+  useEffect(() => {
+    if (activeTab === 'reporting' && !reportingData && !reportingLoading) {
+      fetchReportingData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
 
   // Loading state
   if (loading && !submissions) {

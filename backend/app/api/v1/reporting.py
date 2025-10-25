@@ -1,8 +1,10 @@
 """Reporting API endpoints"""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import and_
 from typing import Optional
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.core.database import get_db
 from app.models import survey as survey_models
@@ -18,6 +20,7 @@ from app.utils.queries import get_submission_counts
 from app.core.auth import require_admin
 
 router = APIRouter(prefix="/api/reports", tags=["reporting"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 # =============================================================================
@@ -25,7 +28,9 @@ router = APIRouter(prefix="/api/reports", tags=["reporting"])
 # =============================================================================
 
 @router.get("/{survey_slug}/submissions")
+@limiter.limit("60/minute")
 def get_report_submissions(
+    request: Request,
     survey_slug: str,
     approved: Optional[str] = None,
     sort_by: str = "submitted_at",
@@ -185,7 +190,9 @@ def reject_submission(
 
 
 @router.get("/{survey_slug}/data", response_model=reporting_schemas.ReportingData)
+@limiter.limit("30/minute")
 def get_reporting_data(
+    request: Request,
     survey_slug: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin)

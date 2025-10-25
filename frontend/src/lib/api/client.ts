@@ -5,6 +5,7 @@
 
 import { apiUrl } from '@/config/api';
 import { logger } from '@/lib/logger';
+import { DEFAULT_API_TIMEOUT_MS } from '@/config/constants';
 
 export class ApiError extends Error {
   constructor(
@@ -25,7 +26,7 @@ interface RequestConfig extends RequestInit {
 }
 
 class ApiClient {
-  private defaultTimeout = 30000; // 30 seconds
+  private defaultTimeout = DEFAULT_API_TIMEOUT_MS;
 
   /**
    * Make a GET request

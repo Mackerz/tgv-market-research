@@ -17,10 +17,12 @@ import type {
 
 export const taxonomyService = {
   /**
-   * Get taxonomy overview for a survey
+   * Get taxonomy overview for a survey, optionally filtered by question
    */
-  getTaxonomy: (surveyId: number) => {
-    return apiClient.get<TaxonomyOverview>(`/api/surveys/${surveyId}/taxonomy`);
+  getTaxonomy: (surveyId: number, questionId?: string) => {
+    return apiClient.get<TaxonomyOverview>(`/api/surveys/${surveyId}/taxonomy`, {
+      params: { question_id: questionId }
+    });
   },
 
   /**
@@ -38,12 +40,12 @@ export const taxonomyService = {
   },
 
   /**
-   * Get media previews for a system label
+   * Get media previews for a system label, optionally filtered by question
    */
-  getMediaPreviews: (surveyId: number, systemLabel: string, limit?: number) => {
+  getMediaPreviews: (surveyId: number, systemLabel: string, limit?: number, questionId?: string) => {
     return apiClient.get<MediaPreview[]>(
       `/api/surveys/${surveyId}/system-labels/${encodeURIComponent(systemLabel)}/media`,
-      { params: { limit } }
+      { params: { limit, question_id: questionId } }
     );
   },
 

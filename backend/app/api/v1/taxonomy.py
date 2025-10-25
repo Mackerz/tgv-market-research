@@ -26,12 +26,18 @@ router = APIRouter(prefix="/api", tags=["taxonomy"])
 
 
 @router.get("/surveys/{survey_id}/taxonomy", response_model=TaxonomyOverview)
-def get_survey_taxonomy(survey_id: int, db: Session = Depends(get_db)):
+def get_survey_taxonomy(
+    survey_id: int,
+    question_id: str | None = None,
+    db: Session = Depends(get_db)
+):
     """
     Get complete taxonomy overview for a survey including:
     - All reporting labels with their system label mappings
     - Unmapped system labels
     - Total media items count
+
+    Optional question_id parameter filters results to only show labels from that specific question.
     """
     # Verify survey exists
     survey = db.query(Survey).filter(Survey.id == survey_id).first()
@@ -40,20 +46,24 @@ def get_survey_taxonomy(survey_id: int, db: Session = Depends(get_db)):
 
     crud = get_reporting_label_crud(db)
 
-    # Get reporting labels
-    reporting_labels = crud.get_by_survey(survey_id)
+    # Get reporting labels (not filtered by question - these are survey-wide categories)
+    reporting_labels = crud.get_by_survey(survey_id, question_id)
 
-    # Get unmapped system labels
-    unmapped_labels = crud.get_unmapped_system_labels(survey_id)
+    # Get unmapped system labels (filtered by question if provided)
+    unmapped_labels = crud.get_unmapped_system_labels(survey_id, question_id)
 
-    # Count total media items
-    total_media = (
+    # Count total media items (filtered by question if provided)
+    media_query = (
         db.query(Media)
         .join(Response)
         .join(Submission)
         .filter(Submission.survey_id == survey_id)
-        .count()
     )
+
+    if question_id:
+        media_query = media_query.filter(Response.question_id == question_id)
+
+    total_media = media_query.count()
 
     return TaxonomyOverview(
         reporting_labels=reporting_labels,
@@ -227,10 +237,12 @@ def get_media_by_system_label(
     survey_id: int,
     system_label: str,
     limit: int = 10,
+    question_id: str | None = None,
     db: Session = Depends(get_db),
 ):
     """
-    Get sample media items that have a specific system label for preview purposes
+    Get sample media items that have a specific system label for preview purposes.
+    Optional question_id parameter filters results to only show media from that specific question.
     """
     # Verify survey exists
     survey = db.query(Survey).filter(Survey.id == survey_id).first()
@@ -238,7 +250,7 @@ def get_media_by_system_label(
         raise HTTPException(status_code=404, detail="Survey not found")
 
     crud = get_reporting_label_crud(db)
-    media_items = crud.get_media_by_system_label(survey_id, system_label, limit)
+    media_items = crud.get_media_by_system_label(survey_id, system_label, limit, question_id)
 
     # Convert to MediaPreview format
     previews = []

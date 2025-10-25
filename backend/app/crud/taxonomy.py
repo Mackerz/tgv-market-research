@@ -24,8 +24,8 @@ class ReportingLabelCRUD:
             .first()
         )
 
-    def get_by_survey(self, survey_id: int) -> list[ReportingLabel]:
-        """Get all reporting labels for a survey"""
+    def get_by_survey(self, survey_id: int, question_id: str | None = None) -> list[ReportingLabel]:
+        """Get all reporting labels for a survey, optionally filtered by question"""
         return (
             self.db.query(ReportingLabel)
             .options(joinedload(ReportingLabel.label_mappings))
@@ -139,7 +139,7 @@ class ReportingLabelCRUD:
         self.db.commit()
         return deleted > 0
 
-    def get_unmapped_system_labels(self, survey_id: int) -> list[SystemLabelWithCount]:
+    def get_unmapped_system_labels(self, survey_id: int, question_id: str | None = None) -> list[SystemLabelWithCount]:
         """Get all system labels that are not mapped to any reporting label"""
         # Get all mapped system labels
         mapped_labels = (
@@ -151,13 +151,18 @@ class ReportingLabelCRUD:
         mapped_label_set = {label[0] for label in mapped_labels}
 
         # Get all media for this survey
-        media_items = (
+        query = (
             self.db.query(Media)
             .join(Response)
             .join(Response.submission)
             .filter(Response.submission.has(survey_id=survey_id))
-            .all()
         )
+
+        # Filter by question_id if provided
+        if question_id:
+            query = query.filter(Response.question_id == question_id)
+
+        media_items = query.all()
 
         # Count occurrences of each system label
         label_counts: dict[str, dict] = {}
@@ -193,10 +198,10 @@ class ReportingLabelCRUD:
         return result
 
     def get_media_by_system_label(
-        self, survey_id: int, system_label: str, limit: int = 10
+        self, survey_id: int, system_label: str, limit: int = 10, question_id: str | None = None
     ) -> list[Media]:
         """Get media items that have a specific system label with eager loading"""
-        media_items = (
+        query = (
             self.db.query(Media)
             .join(Response)
             .join(Response.submission)
@@ -209,9 +214,13 @@ class ReportingLabelCRUD:
                     Media.reporting_labels.contains(f'"{system_label}"'),
                 )
             )
-            .limit(limit)
-            .all()
         )
+
+        # Filter by question_id if provided
+        if question_id:
+            query = query.filter(Response.question_id == question_id)
+
+        media_items = query.limit(limit).all()
         return media_items
 
 

@@ -10,13 +10,18 @@ import {
   ReportingLabelCreate
 } from '@/types/taxonomy';
 import { logger } from '@/lib/logger';
-import { taxonomyService } from '@/lib/api';
+import { taxonomyService, surveyService } from '@/lib/api';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { DEFAULT_MEDIA_PREVIEW_LIMIT, DEFAULT_TAXONOMY_CATEGORIES } from '@/config/constants';
 
 interface TaxonomiesTabProps {
   surveyId: number;
 }
 
 export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
+  // Use error handling hook
+  const { error, handleError, clearError } = useErrorHandler();
+
   const [taxonomy, setTaxonomy] = useState<TaxonomyOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -28,18 +33,51 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
   const [creatingNew, setCreatingNew] = useState(false);
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelDescription, setNewLabelDescription] = useState('');
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+  const [availableQuestions, setAvailableQuestions] = useState<Array<{ id: string; question: string; type: string }>>([]);
 
   useEffect(() => {
-    fetchTaxonomy();
+    fetchSurveyQuestions();
   }, [surveyId]);
+
+  useEffect(() => {
+    if (selectedQuestionId) {
+      fetchTaxonomy();
+    }
+  }, [selectedQuestionId]);
+
+  const fetchSurveyQuestions = async () => {
+    try {
+      const survey = await surveyService.getSurvey(surveyId);
+      // Filter for only photo and video questions
+      const mediaQuestions = survey.survey_flow
+        .filter(q => q.question_type === 'photo' || q.question_type === 'video')
+        .map(q => ({
+          id: q.id,
+          question: q.question,
+          type: q.question_type
+        }));
+      setAvailableQuestions(mediaQuestions);
+
+      // Auto-select first media question if available
+      if (mediaQuestions.length > 0 && !selectedQuestionId) {
+        setSelectedQuestionId(mediaQuestions[0].id);
+      }
+    } catch (err) {
+      logger.error('Error fetching survey questions', err);
+      handleError(err);
+    }
+  };
 
   const fetchTaxonomy = async () => {
     try {
       setLoading(true);
-      const data = await taxonomyService.getTaxonomy(surveyId);
+      const data = await taxonomyService.getTaxonomy(surveyId, selectedQuestionId || undefined);
       setTaxonomy(data);
-    } catch (error) {
-      logger.error('Error fetching taxonomy', error);
+      clearError();
+    } catch (err) {
+      logger.error('Error fetching taxonomy', err);
+      handleError(err);
     } finally {
       setLoading(false);
     }
@@ -48,10 +86,11 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
   const generateTaxonomy = async () => {
     try {
       setGenerating(true);
-      await taxonomyService.generateTaxonomy(surveyId, 6);
+      await taxonomyService.generateTaxonomy(surveyId, DEFAULT_TAXONOMY_CATEGORIES);
       await fetchTaxonomy();
-    } catch (error) {
-      logger.error('Error generating taxonomy:', error);
+    } catch (err) {
+      logger.error('Error generating taxonomy:', err);
+      handleError(err);
     } finally {
       setGenerating(false);
     }
@@ -59,10 +98,16 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
 
   const fetchMediaPreviews = async (systemLabel: string) => {
     try {
-      const data = await taxonomyService.getMediaPreviews(surveyId, systemLabel, 5);
+      const data = await taxonomyService.getMediaPreviews(
+        surveyId,
+        systemLabel,
+        DEFAULT_MEDIA_PREVIEW_LIMIT,
+        selectedQuestionId || undefined
+      );
       setMediaPreviews(data);
-    } catch (error) {
-      logger.error('Error fetching media previews:', error);
+    } catch (err) {
+      logger.error('Error fetching media previews:', err);
+      handleError(err);
     }
   };
 
@@ -72,8 +117,9 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
       await fetchTaxonomy();
       setSelectedLabel(null);
       setMediaPreviews([]);
-    } catch (error) {
-      logger.error('Error adding system label:', error);
+    } catch (err) {
+      logger.error('Error adding system label:', err);
+      handleError(err);
     }
   };
 
@@ -81,8 +127,9 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
     try {
       await taxonomyService.removeSystemLabel(reportingLabelId, systemLabel);
       await fetchTaxonomy();
-    } catch (error) {
-      logger.error('Error removing system label:', error);
+    } catch (err) {
+      logger.error('Error removing system label:', err);
+      handleError(err);
     }
   };
 
@@ -95,8 +142,9 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
       await taxonomyService.updateReportingLabel(labelId, updateData);
       await fetchTaxonomy();
       setEditingLabel(null);
-    } catch (error) {
-      logger.error('Error updating label:', error);
+    } catch (err) {
+      logger.error('Error updating label:', err);
+      handleError(err);
     }
   };
 
@@ -114,8 +162,9 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
       setCreatingNew(false);
       setNewLabelName('');
       setNewLabelDescription('');
-    } catch (error) {
-      logger.error('Error creating label:', error);
+    } catch (err) {
+      logger.error('Error creating label:', err);
+      handleError(err);
     }
   };
 
@@ -126,8 +175,9 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
     try {
       await taxonomyService.deleteReportingLabel(labelId);
       await fetchTaxonomy();
-    } catch (error) {
-      logger.error('Error deleting label:', error);
+    } catch (err) {
+      logger.error('Error deleting label:', err);
+      handleError(err);
       alert('Cannot delete label. Remove all system label mappings first.');
     }
   };
@@ -149,6 +199,27 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start justify-between">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm">{error}</span>
+          </div>
+          <button
+            onClick={clearError}
+            className="text-red-600 hover:text-red-800 ml-4"
+            aria-label="Dismiss error"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex-1 min-w-0">
@@ -173,6 +244,32 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
           </button>
         </div>
       </div>
+
+      {/* Question Selector */}
+      {availableQuestions.length > 0 ? (
+        <div className="bg-white p-4 rounded-lg shadow">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Question (Photo/Video only):
+          </label>
+          <select
+            value={selectedQuestionId || ''}
+            onChange={(e) => setSelectedQuestionId(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {availableQuestions.map((q) => (
+              <option key={q.id} value={q.id}>
+                {q.question} ({q.type === 'photo' ? 'Photo' : 'Video'})
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+          <p className="text-sm text-yellow-800">
+            No photo or video questions found in this survey. Taxonomy is only available for media questions.
+          </p>
+        </div>
+      )}
 
       {/* Stats */}
       {taxonomy && (

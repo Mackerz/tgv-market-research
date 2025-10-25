@@ -15,6 +15,11 @@ from app.core.auth import (
     get_current_user_from_token,
     GOOGLE_CLIENT_ID,
 )
+from app.core.constants import (
+    LOGIN_RATE_LIMIT,
+    GOOGLE_LOGIN_RATE_LIMIT,
+    COOKIE_MAX_AGE_SECONDS,
+)
 from app.schemas.user import LoginRequest, LoginResponse, GoogleLoginRequest, User as UserSchema
 from app.models.user import User
 from app.crud.user import user as user_crud
@@ -24,7 +29,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/login", response_model=LoginResponse)
-@limiter.limit("5/minute")
+@limiter.limit(LOGIN_RATE_LIMIT)
 async def login(
     request: Request,
     login_data: LoginRequest,
@@ -58,7 +63,7 @@ async def login(
         httponly=True,
         secure=os.getenv("ENVIRONMENT") == "production",  # Only HTTPS in production
         samesite="lax",
-        max_age=60 * 60 * 24 * 7,  # 7 days
+        max_age=COOKIE_MAX_AGE_SECONDS,
     )
 
     return LoginResponse(
@@ -68,7 +73,7 @@ async def login(
 
 
 @router.post("/google", response_model=LoginResponse)
-@limiter.limit("10/minute")
+@limiter.limit(GOOGLE_LOGIN_RATE_LIMIT)
 async def google_login(
     request: Request,
     google_data: GoogleLoginRequest,
@@ -142,7 +147,7 @@ async def google_login(
             httponly=True,
             secure=os.getenv("ENVIRONMENT") == "production",
             samesite="lax",
-            max_age=60 * 60 * 24 * 7,  # 7 days
+            max_age=COOKIE_MAX_AGE_SECONDS,
         )
 
         return LoginResponse(

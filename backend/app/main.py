@@ -15,6 +15,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.api.v1 import api_router
 from app.core.database import Base, engine, get_db
 from app.core.error_handlers import register_error_handlers
+from app.core.constants import (
+    DEFAULT_RATE_LIMIT,
+    MAX_UPLOAD_SIZE_BYTES,
+    MAX_REQUEST_SIZE_BYTES,
+    HSTS_MAX_AGE_SECONDS,
+)
 
 # Import models to ensure they're registered with SQLAlchemy
 
@@ -33,7 +39,7 @@ Base.metadata.create_all(bind=engine)
 
 # Initialize rate limiter
 # This limits requests by IP address to prevent abuse
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+limiter = Limiter(key_func=get_remote_address, default_limits=[DEFAULT_RATE_LIMIT])
 
 # Create FastAPI application with request size limits
 app = FastAPI(
@@ -42,13 +48,13 @@ app = FastAPI(
     description="Backend API for Market Research Survey Platform"
 )
 
-# Add request size limit middleware (50MB for file uploads, 10MB for regular requests)
+# Add request size limit middleware
 class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
     """Middleware to enforce request size limits."""
     async def dispatch(self, request: Request, call_next):
         # Check if this is a file upload endpoint
         is_upload = "/upload" in request.url.path or "/media" in request.url.path
-        max_size = 52428800 if is_upload else 10485760  # 50MB for uploads, 10MB for others
+        max_size = MAX_UPLOAD_SIZE_BYTES if is_upload else MAX_REQUEST_SIZE_BYTES
 
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > max_size:
@@ -98,6 +104,22 @@ else:
     logger.info("✅ CORS origins loaded from environment variable")
 
 allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
+# Security validation: Never allow wildcard in production
+environment = os.getenv("ENVIRONMENT", "development")
+if "*" in allowed_origins and environment == "production":
+    raise ValueError(
+        "⛔ SECURITY ERROR: Wildcard CORS origins (*) are not allowed in production. "
+        "Please configure specific allowed origins in ALLOWED_ORIGINS."
+    )
+
+# Additional validation: Ensure origins are not empty in production
+if environment == "production" and (not allowed_origins or allowed_origins == ['']):
+    raise ValueError(
+        "⛔ SECURITY ERROR: ALLOWED_ORIGINS must be explicitly configured in production. "
+        "Cannot default to empty or wildcard origins."
+    )
+
 logger.info(f"✅ Configured CORS origins: {allowed_origins}")
 
 # Security Headers Middleware
@@ -127,7 +149,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Enforce HTTPS (only in production)
         if os.getenv("ENVIRONMENT", "development") == "production":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = f"max-age={HSTS_MAX_AGE_SECONDS}; includeSubDomains"
 
         # Content Security Policy - strict by default
         # Allow same-origin content and specified domains

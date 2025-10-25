@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient, ApiError } from '@/lib/api';
 import { apiUrl } from '@/config/api';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 import {
   SubmissionsResponse,
   SubmissionDetailResponse,
@@ -14,11 +15,13 @@ import {
  * Handles submissions, submission details, and reporting data
  */
 export function useReportData(reportSlug: string) {
+  // Error handling using new reusable hook
+  const { error, handleError, setError } = useErrorHandler();
+
   // Submissions state
   const [submissions, setSubmissions] = useState<SubmissionsResponse | null>(null);
   const [selectedSubmission, setSelectedSubmission] = useState<SubmissionDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Filtering and sorting
   const [approvalFilter, setApprovalFilter] = useState<ApprovalFilter>('all');
@@ -57,11 +60,7 @@ export function useReportData(reportSlug: string) {
       setSubmissions(data);
       setError(null);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
+      handleError(err);
     } finally {
       setLoading(false);
     }
@@ -75,11 +74,7 @@ export function useReportData(reportSlug: string) {
       setSelectedSubmission(data);
       setError(null);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
+      handleError(err);
     }
   };
 
@@ -94,11 +89,7 @@ export function useReportData(reportSlug: string) {
       }
       setError(null);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
+      handleError(err);
     }
   };
 
@@ -113,11 +104,7 @@ export function useReportData(reportSlug: string) {
       }
       setError(null);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
+      handleError(err);
     }
   };
 
@@ -135,7 +122,7 @@ export function useReportData(reportSlug: string) {
       setReportingData(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      handleError(err);
     } finally {
       setReportingLoading(false);
     }
