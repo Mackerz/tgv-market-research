@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   SubmissionsResponse,
   SubmissionDetailResponse,
@@ -6,6 +7,10 @@ import {
 } from './types';
 import { formatDate, getStatusBadge } from './utils';
 import SubmissionDetail from './SubmissionDetail';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { reportingService } from '@/lib/api/services/reporting';
+import { surveyService } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 interface SubmissionsTabProps {
   submissions: SubmissionsResponse | null;
@@ -41,13 +46,162 @@ export function SubmissionsTab({
   onApprove,
   onReject
 }: SubmissionsTabProps) {
+  const [exporting, setExporting] = useState(false);
+
+  /**
+   * Export submissions to CSV with all questions and responses
+   */
+  const handleExportCSV = async () => {
+    if (!submissions || submissions.submissions.length === 0) {
+      alert('No submissions to export');
+      return;
+    }
+
+    try {
+      setExporting(true);
+
+      // 1. Fetch full survey details to get all questions
+      const surveyData = await surveyService.getSurveyBySlug(submissions.survey.survey_slug);
+      const questions = surveyData.survey_flow || [];
+
+      // 2. Fetch all submission details with responses
+      const submissionDetails = await Promise.all(
+        submissions.submissions.map(submission =>
+          reportingService.getSubmissionDetail(submissions.survey.survey_slug, submission.id)
+        )
+      );
+
+      // 3. Define CSV headers - basic info + all questions
+      const basicHeaders = [
+        'ID',
+        'Email',
+        'Phone Number',
+        'Region',
+        'Gender',
+        'Age',
+        'Submitted At',
+        'Status',
+        'Completed'
+      ];
+
+      const questionHeaders = questions.map(q => q.question);
+      const headers = [...basicHeaders, ...questionHeaders];
+
+      // 4. Create CSV rows
+      const rows = submissionDetails.map(detail => {
+        const submission = detail.submission;
+        const responses = detail.responses;
+
+        // Basic info
+        const status = submission.is_approved === null
+          ? 'Pending'
+          : submission.is_approved
+            ? 'Approved'
+            : 'Rejected';
+
+        const basicInfo = [
+          submission.id,
+          submission.email,
+          submission.phone_number,
+          submission.region,
+          submission.gender,
+          submission.age,
+          new Date(submission.submitted_at).toLocaleString(),
+          status,
+          submission.is_completed ? 'Yes' : 'No'
+        ];
+
+        // Map responses to questions
+        const responseMap = new Map(
+          responses.map(r => [r.question, r])
+        );
+
+        const questionResponses = questions.map(q => {
+          const response = responseMap.get(q.question);
+          if (!response) return '';
+
+          // Format response based on type
+          switch (response.question_type) {
+            case 'single':
+              return response.single_answer || '';
+            case 'multi':
+              return response.multiple_choice_answer?.join('; ') || '';
+            case 'free_text':
+              return response.free_text_answer || '';
+            case 'photo':
+              return response.photo_url || '';
+            case 'video':
+              return response.video_url || '';
+            default:
+              return '';
+          }
+        });
+
+        return [...basicInfo, ...questionResponses];
+      });
+
+      // 5. Create CSV content with proper escaping
+      const escapeCsvCell = (cell: any): string => {
+        const cellStr = String(cell);
+        // Escape cells containing commas, quotes, or newlines
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      };
+
+      const csvContent = [
+        headers.map(escapeCsvCell).join(','),
+        ...rows.map(row => row.map(escapeCsvCell).join(','))
+      ].join('\n');
+
+      // 6. Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${submissions.survey.survey_slug}-submissions-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      logger.error('Error exporting CSV:', error);
+      alert('Failed to export CSV. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="flex space-x-6">
       {/* Submissions Table */}
       <div className={selectedSubmission ? 'w-1/2' : 'w-full'}>
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Submissions</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Submissions</h2>
+
+              {/* Export CSV Button */}
+              <button
+                onClick={handleExportCSV}
+                disabled={!submissions || submissions.submissions.length === 0 || exporting}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                title="Export submissions with all questions to CSV"
+              >
+                {exporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownTrayIcon className="h-5 w-5" />
+                    <span>Export CSV</span>
+                  </>
+                )}
+              </button>
+            </div>
 
             {/* Filters */}
             <div className="mt-4 flex space-x-4">
