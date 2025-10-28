@@ -1,27 +1,19 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { useRouter, useParams } from 'next/navigation';
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { surveyService } from '@/lib/api';
 import { Question, QuestionMedia, RoutingRule } from '@/components/survey-create/types';
 import QuestionBuilder from '@/components/survey-create/QuestionBuilder';
 import SurveyDetailsForm from '@/components/survey-create/SurveyDetailsForm';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
-function CreateSurveyForm() {
+export default function EditSurveyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const editSlug = searchParams.get('edit'); // Get the survey slug to edit
-
-  // Redirect to new edit route if edit mode is attempted
-  useEffect(() => {
-    if (editSlug) {
-      router.push(`/report/${editSlug}/edit`);
-    }
-  }, [editSlug, router]);
-
-  const isEditMode = false; // Always false now, edit mode is under /report/[slug]/edit
+  const params = useParams();
+  const reportSlug = params.reportSlug as string;
 
   const [surveyId, setSurveyId] = useState<number | null>(null);
   const [surveySlug, setSurveySlug] = useState('');
@@ -36,7 +28,34 @@ function CreateSurveyForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // No longer fetching survey data - edit mode is disabled on this route
+  // Fetch survey data on mount
+  useEffect(() => {
+    const fetchSurvey = async () => {
+      try {
+        setLoading(true);
+        const surveyData = await surveyService.getSurveyBySlug(reportSlug);
+
+        // Pre-fill form fields
+        setSurveyId(surveyData.id);
+        setSurveySlug(surveyData.survey_slug);
+        setSurveyName(surveyData.name);
+        setClient(surveyData.client || '');
+        setIsActive(surveyData.is_active);
+        setCompleteRedirectUrl(surveyData.complete_redirect_url || '');
+        setScreenoutRedirectUrl(surveyData.screenout_redirect_url || '');
+        setQuestions(surveyData.survey_flow || []);
+      } catch (err) {
+        logger.error('Error fetching survey:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load survey');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (reportSlug) {
+      fetchSurvey();
+    }
+  }, [reportSlug]);
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -104,10 +123,10 @@ function CreateSurveyForm() {
       conditions: [{
         question_id: newQuestions[questionIndex].id,
         operator: 'equals',
-        value: undefined // Don't set a value initially - let it be undefined or set properly
+        value: undefined
       }],
       action: 'continue',
-      target_question_id: undefined // Make sure it's undefined for non-goto actions
+      target_question_id: undefined
     });
     setQuestions(newQuestions);
   };
@@ -155,7 +174,52 @@ function CreateSurveyForm() {
     setQuestions(newQuestions);
   };
 
-  // Export and Copy functions removed - only available in edit mode at /report/[slug]/edit
+  const handleExportSurvey = async () => {
+    if (!surveySlug) {
+      alert('Please save the survey first before exporting');
+      return;
+    }
+
+    try {
+      const surveyData = await surveyService.getSurveyBySlug(surveySlug);
+      const jsonString = JSON.stringify(surveyData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${surveySlug}-metadata.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      logger.error('Error exporting survey:', err);
+      alert('Failed to export survey. Please try again.');
+    }
+  };
+
+  const handleCopySurvey = async () => {
+    if (!surveyId) {
+      alert('Please save the survey first before copying');
+      return;
+    }
+
+    if (!confirm('Create a copy of this survey? The copy will have a new slug and "(Copy)" appended to the name.')) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const copiedSurvey = await surveyService.copySurvey(surveyId);
+      alert(`Survey copied successfully! Redirecting to edit the copy...`);
+      router.push(`/report/${copiedSurvey.survey_slug}/edit`);
+    } catch (err) {
+      logger.error('Error copying survey:', err);
+      alert('Failed to copy survey. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,7 +256,7 @@ function CreateSurveyForm() {
 
     try {
       // Clean up the survey data before sending
-      const cleanedQuestions = questions.map((q, qIndex) => {
+      const cleanedQuestions = questions.map((q) => {
         const cleaned: any = {
           id: q.id,
           question: q.question,
@@ -211,17 +275,13 @@ function CreateSurveyForm() {
         // Add routing rules only if they exist and are valid
         if (q.routing_rules && q.routing_rules.length > 0) {
           const validRules = q.routing_rules.filter(r => {
-            // Rule must have at least one condition
             if (!r.conditions || r.conditions.length === 0) return false;
-            // Rule must have valid conditions
             const validCondition = r.conditions[0];
             if (!validCondition.question_id || !validCondition.operator) return false;
-            // For operators that need a value, make sure value is provided
             const operatorsNeedingValue = ['equals', 'not_equals', 'contains', 'not_contains', 'contains_any', 'contains_all', 'greater_than', 'less_than'];
             if (operatorsNeedingValue.includes(validCondition.operator) && (validCondition.value === undefined || validCondition.value === '')) {
               return false;
             }
-            // If goto_question, must have target
             if (r.action === 'goto_question' && !r.target_question_id) return false;
             return true;
           });
@@ -232,7 +292,6 @@ function CreateSurveyForm() {
                 conditions: r.conditions,
                 action: r.action
               };
-              // Only add target_question_id if action is goto_question
               if (r.action === 'goto_question' && r.target_question_id) {
                 cleanedRule.target_question_id = r.target_question_id;
               }
@@ -265,14 +324,11 @@ function CreateSurveyForm() {
         ...(screenoutRedirectUrl && screenoutRedirectUrl.trim() !== '' ? { screenout_redirect_url: screenoutRedirectUrl } : {})
       };
 
-      // Always creating a new survey on this route
-      requestBody.survey_slug = surveySlug;
-
-      const data = await surveyService.createSurvey(requestBody);
-      alert('Survey created successfully!');
-      router.push(`/report/${data.survey_slug}`);
+      await surveyService.updateSurvey(surveyId!, requestBody);
+      alert('Survey updated successfully!');
+      router.push(`/report/${surveySlug}`);
     } catch (err) {
-      logger.error('Error creating survey:', err);
+      logger.error('Error updating survey:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSaving(false);
@@ -283,12 +339,8 @@ function CreateSurveyForm() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Create New Survey
-          </h1>
-          <p className="text-gray-600">
-            Design a survey with questions, routing, and media
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Survey</h1>
+          <p className="text-gray-600">Update your survey configuration</p>
         </div>
 
         {loading && (
@@ -300,7 +352,7 @@ function CreateSurveyForm() {
 
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-            <div className="font-semibold mb-2">Error Creating Survey</div>
+            <div className="font-semibold mb-2">Error Loading Survey</div>
             <pre className="text-sm whitespace-pre-wrap font-mono">{error}</pre>
           </div>
         )}
@@ -314,7 +366,7 @@ function CreateSurveyForm() {
             isActive={isActive}
             completeRedirectUrl={completeRedirectUrl}
             screenoutRedirectUrl={screenoutRedirectUrl}
-            isEditMode={false}
+            isEditMode={true}
             onSurveySlugChange={setSurveySlug}
             onSurveyNameChange={setSurveyName}
             onClientChange={setClient}
@@ -339,7 +391,7 @@ function CreateSurveyForm() {
 
             {questions.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                No questions yet. Click "Add Question" to get started.
+                No questions yet. Click &quot;Add Question&quot; to get started.
               </div>
             )}
 
@@ -372,41 +424,48 @@ function CreateSurveyForm() {
           </div>
 
           {/* Submit */}
-          <div className="flex justify-end items-center space-x-4">
-            <button
-              type="button"
-              onClick={() => router.push('/report')}
-              className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || loading}
-              className={`px-6 py-3 rounded-md text-white font-medium ${
-                saving || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {saving ? 'Creating...' : 'Create Survey'}
-            </button>
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={handleCopySurvey}
+                disabled={saving || loading}
+                className="flex items-center space-x-2 px-6 py-3 border border-[#D01A8A] rounded-md text-[#D01A8A] hover:bg-[#F5E8F0] font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Create a copy of this survey with a new slug and name"
+              >
+                <DocumentDuplicateIcon className="h-5 w-5" />
+                <span>Copy Survey</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleExportSurvey}
+                className="px-6 py-3 border border-purple-300 rounded-md text-purple-700 hover:bg-purple-50 font-medium"
+                title="Export survey metadata as JSON"
+              >
+                Export JSON
+              </button>
+            </div>
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={() => router.push(`/report/${surveySlug}`)}
+                className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving || loading}
+                className={`px-6 py-3 rounded-md text-white font-medium ${
+                  saving || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {saving ? 'Updating...' : 'Update Survey'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
     </div>
-  );
-}
-
-export default function CreateSurveyPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D01A8A] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    }>
-      <CreateSurveyForm />
-    </Suspense>
   );
 }

@@ -356,7 +356,7 @@ export default function SurveysListPage() {
                         </Link>
                         <span className="text-gray-300">|</span>
                         <Link
-                          href={`/survey/create?edit=${survey.survey_slug}`}
+                          href={`/report/${survey.survey_slug}/edit`}
                           className="text-orange-600 hover:text-orange-900"
                           title="Edit survey"
                         >
