@@ -179,7 +179,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # More restrictive than "*"
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],  # Include PATCH for toggle endpoints
     allow_headers=["Content-Type", "Authorization", "X-API-Key"],  # Allow X-API-Key header
 )
 

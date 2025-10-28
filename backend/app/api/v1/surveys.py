@@ -173,6 +173,32 @@ def delete_survey(
     return {"message": "Survey deleted successfully"}
 
 
+@router.post("/surveys/{survey_id}/copy", response_model=survey_schemas.Survey)
+def copy_survey(
+    survey_id: int,
+    db: Session = Depends(get_db),
+    api_key: str = RequireAPIKey
+):
+    """
+    Copy an existing survey (ADMIN ONLY - Requires: X-API-Key header)
+
+    Creates a duplicate of the survey with:
+    - A new unique slug (auto-generated)
+    - "(Copy)" appended to the name
+    - Same survey_flow, client, and redirect URLs
+    - is_active set to False (inactive by default)
+
+    Returns the newly created survey copy.
+    """
+    try:
+        copied_survey = survey_crud.copy_survey(db=db, survey_id=survey_id)
+        return copied_survey
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to copy survey: {str(e)}")
+
+
 # =============================================================================
 # FILE UPLOAD ENDPOINTS
 # =============================================================================

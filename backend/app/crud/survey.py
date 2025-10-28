@@ -43,6 +43,45 @@ class CRUDSurvey(CRUDBase[Survey, SurveyCreate, SurveyUpdate]):
             query = query.filter(self.model.is_active == True)
         return query.offset(skip).limit(limit).all()
 
+    def copy_survey(self, db: Session, survey_id: int) -> Survey:
+        """
+        Create a copy of an existing survey with a new unique slug and name.
+        The copied survey will have "(Copy)" appended to its name and a new generated slug.
+        """
+        # Get the original survey
+        original_survey = self.get(db, survey_id)
+        if not original_survey:
+            raise ValueError(f"Survey with ID {survey_id} not found")
+
+        # Generate a unique slug
+        new_slug = generate_survey_slug()
+        attempts = 0
+        max_attempts = 10
+        while self.get_by_slug(db, new_slug) and attempts < max_attempts:
+            new_slug = generate_survey_slug()
+            attempts += 1
+
+        if attempts >= max_attempts:
+            raise ValueError("Failed to generate a unique survey slug")
+
+        # Create new survey name
+        new_name = f"{original_survey.name} (Copy)"
+
+        # Create the new survey
+        db_obj = self.model(
+            survey_slug=new_slug,
+            name=new_name,
+            survey_flow=original_survey.survey_flow,  # Deep copy of JSON
+            is_active=False,  # Start as inactive
+            client=original_survey.client,
+            complete_redirect_url=original_survey.complete_redirect_url,
+            screenout_redirect_url=original_survey.screenout_redirect_url
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
     def create(self, db: Session, *, obj_in: SurveyCreate) -> Survey:
         """Create survey with unique slug validation"""
         # Check if slug already exists
@@ -260,6 +299,11 @@ def update_survey(db: Session, survey_id: int, survey_data: SurveyUpdate) -> Opt
 def delete_survey(db: Session, survey_id: int) -> bool:
     """Delete survey"""
     return survey.delete(db, id=survey_id)
+
+
+def copy_survey(db: Session, survey_id: int) -> Survey:
+    """Copy survey"""
+    return survey.copy_survey(db, survey_id)
 
 
 # Submission functions

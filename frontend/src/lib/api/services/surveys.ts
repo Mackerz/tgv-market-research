@@ -148,4 +148,12 @@ export const surveyService = {
   toggleSurveyStatus: (surveyId: number) => {
     return apiClient.patch<Survey>(`/api/surveys/${surveyId}/toggle-status`);
   },
+
+  /**
+   * Copy an existing survey (ADMIN ONLY)
+   * Creates a duplicate with a new slug and name that can be edited
+   */
+  copySurvey: (surveyId: number) => {
+    return apiClient.post<Survey>(`/api/surveys/${surveyId}/copy`);
+  },
 };

@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { logger } from '@/lib/logger';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { surveyService } from '@/lib/api';
 import { Question, QuestionMedia, RoutingRule } from '@/components/survey-create/types';
 import QuestionBuilder from '@/components/survey-create/QuestionBuilder';
@@ -200,6 +200,30 @@ function CreateSurveyForm() {
     } catch (err) {
       logger.error('Error exporting survey:', err);
       alert('Failed to export survey. Please try again.');
+    }
+  };
+
+  const handleCopySurvey = async () => {
+    if (!surveyId) {
+      alert('Please save the survey first before copying');
+      return;
+    }
+
+    if (!confirm('Create a copy of this survey? The copy will have a new slug and "(Copy)" appended to the name.')) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const copiedSurvey = await surveyService.copySurvey(surveyId);
+      alert(`Survey copied successfully! Redirecting to edit the copy...`);
+      // Navigate to edit the copied survey
+      router.push(`/survey/create?edit=${copiedSurvey.survey_slug}`);
+    } catch (err) {
+      logger.error('Error copying survey:', err);
+      alert('Failed to copy survey. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -423,16 +447,28 @@ function CreateSurveyForm() {
 
           {/* Submit */}
           <div className="flex justify-between items-center">
-            <div>
+            <div className="flex space-x-4">
               {isEditMode && (
-                <button
-                  type="button"
-                  onClick={handleExportSurvey}
-                  className="px-6 py-3 border border-purple-300 rounded-md text-purple-700 hover:bg-purple-50 font-medium"
-                  title="Export survey metadata as JSON"
-                >
-                  Export JSON
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={handleCopySurvey}
+                    disabled={saving || loading}
+                    className="flex items-center space-x-2 px-6 py-3 border border-[#D01A8A] rounded-md text-[#D01A8A] hover:bg-[#F5E8F0] font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Create a copy of this survey with a new slug and name"
+                  >
+                    <DocumentDuplicateIcon className="h-5 w-5" />
+                    <span>Copy Survey</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExportSurvey}
+                    className="px-6 py-3 border border-purple-300 rounded-md text-purple-700 hover:bg-purple-50 font-medium"
+                    title="Export survey metadata as JSON"
+                  >
+                    Export JSON
+                  </button>
+                </>
               )}
             </div>
             <div className="flex space-x-4">
