@@ -101,7 +101,7 @@ describe('ErrorState Component', () => {
     const homeButton = screen.getByText('Go Home');
 
     // Retry button should have primary styles
-    expect(retryButton).toHaveClass('bg-blue-500');
+    expect(retryButton).toHaveClass('bg-[#D01A8A]');
     expect(retryButton).toHaveClass('text-white');
 
     // Home button should have secondary styles

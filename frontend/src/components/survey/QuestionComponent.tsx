@@ -166,13 +166,13 @@ export default function QuestionComponent({
           <span className="text-sm font-medium text-gray-600">
             Question {currentQuestionIndex + 1} of {survey.survey_flow.length}
           </span>
-          <span className="text-sm font-medium text-blue-600">
+          <span className="text-sm font-medium text-[#D01A8A]">
             {Math.round(((currentQuestionIndex + 1) / survey.survey_flow.length) * 100)}% Complete
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            className="bg-[#D01A8A] h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentQuestionIndex + 1) / survey.survey_flow.length) * 100}%` }}
           ></div>
         </div>

@@ -149,7 +149,7 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
             id="email"
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#D01A8A] focus:border-transparent ${
               errors.email ? 'border-red-500' : 'border-gray-300'
             }`}
             placeholder="your.email@example.com"
@@ -169,7 +169,7 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
               <select
                 value={formData.region}
                 onChange={(e) => handleInputChange('region', e.target.value)}
-                className={`appearance-none bg-white border rounded-lg px-4 py-3 pr-10 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                className={`appearance-none bg-white border rounded-lg px-4 py-3 pr-10 text-gray-900 focus:ring-2 focus:ring-[#D01A8A] focus:border-transparent ${
                   errors.region ? 'border-red-500' : 'border-gray-300'
                 }`}
                 disabled={loading}
@@ -189,7 +189,7 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
               type="tel"
               value={formData.phone_number}
               onChange={(e) => handleInputChange('phone_number', e.target.value)}
-              className={`flex-1 px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`flex-1 px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-[#D01A8A] focus:border-transparent ${
                 errors.phone_number ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Phone number"
@@ -218,7 +218,7 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
             id="date_of_birth"
             value={formData.date_of_birth}
             onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
-            className={`w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={`w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-[#D01A8A] focus:border-transparent ${
               errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
             }`}
             max={new Date().toISOString().split('T')[0]} // Prevent future dates
@@ -241,7 +241,7 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
                   value={gender}
                   checked={formData.gender === gender}
                   onChange={(e) => handleInputChange('gender', e.target.value)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="h-4 w-4 text-[#D01A8A] focus:ring-[#D01A8A] border-gray-300"
                   disabled={loading}
                 />
                 <span className="ml-3 text-gray-700">{gender}</span>
@@ -262,7 +262,7 @@ export default function PersonalInfoForm({ onComplete }: PersonalInfoFormProps) 
             className={`w-full py-3 px-6 rounded-lg text-white font-medium transition-colors ${
               loading
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
+                : 'bg-[#D01A8A] hover:bg-[#B0156E] focus:ring-2 focus:ring-[#D01A8A]'
             }`}
           >
             {loading ? (

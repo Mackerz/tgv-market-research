@@ -67,7 +67,7 @@ export default function MediaGallery({ reportSlug }: MediaGalleryProps) {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">Media Gallery</h2>
           <div className="flex space-x-4 text-sm">
-            <div className="bg-blue-100 px-3 py-1 rounded text-blue-800">
+            <div className="bg-[#F5E8F0] px-3 py-1 rounded text-[#4E0036]">
               Total: {filteredItems.length}
             </div>
             <div className="bg-green-100 px-3 py-1 rounded text-green-800">

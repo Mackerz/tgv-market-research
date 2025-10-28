@@ -68,9 +68,9 @@ export default function SurveyComplete({ surveyName, completeRedirectUrl, extern
       </div>
 
       {redirecting ? (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-          <h3 className="text-lg font-semibold text-blue-800 mb-2">Redirecting...</h3>
-          <p className="text-sm text-blue-700">
+        <div className="bg-[#F5E8F0] border border-[#F5E8F0] rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-semibold text-[#4E0036] mb-2">Redirecting...</h3>
+          <p className="text-sm text-[#B0156E]">
             You will be redirected in {countdown} second{countdown !== 1 ? 's' : ''}
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function SurveyComplete({ surveyName, completeRedirectUrl, extern
         <div className="space-y-4">
           <button
             onClick={() => router.push('/')}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors"
+            className="w-full bg-[#D01A8A] text-white py-3 px-6 rounded-lg font-medium hover:bg-[#B0156E] focus:ring-2 focus:ring-[#D01A8A] transition-colors"
           >
             Return to Home
           </button>

@@ -92,7 +92,7 @@ export default function SubmissionsList({
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => onViewDetail(submission.id)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-[#D01A8A] text-white rounded-lg hover:bg-[#D01A8A] transition-colors text-sm font-medium"
               >
                 View Details
               </button>

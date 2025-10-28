@@ -51,6 +51,6 @@ describe('LoadingState Component', () => {
     const spinner = document.querySelector('.animate-spin');
     expect(spinner).toHaveClass('rounded-full');
     expect(spinner).toHaveClass('border-b-2');
-    expect(spinner).toHaveClass('border-blue-500');
+    expect(spinner).toHaveClass('border-[#D01A8A]');
   });
 });

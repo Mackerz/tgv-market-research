@@ -98,7 +98,7 @@ class RouteErrorBoundaryClass extends Component<Props, State> {
             <div className="flex space-x-3">
               <button
                 onClick={this.reset}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium transition"
+                className="flex-1 px-4 py-2 bg-[#D01A8A] text-white rounded-md hover:bg-[#B0156E] font-medium transition"
               >
                 Try Again
               </button>

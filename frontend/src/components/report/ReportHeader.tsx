@@ -38,7 +38,7 @@ export function ReportHeader({
             <p className="text-gray-500">Survey: {reportSlug}</p>
           </div>
           <div className="flex space-x-4 text-sm">
-            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-medium">
+            <div className="bg-[#F5E8F0] text-[#4E0036] px-3 py-1 rounded font-medium">
               Total: {submissions?.total_count || 0}
             </div>
             <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded font-medium">
@@ -62,7 +62,7 @@ export function ReportHeader({
                 onClick={() => onTabChange(tab.key)}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.key
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-[#D01A8A] text-[#D01A8A]'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >

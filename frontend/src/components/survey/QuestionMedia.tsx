@@ -36,7 +36,7 @@ export default function QuestionMedia({ mediaUrl, mediaType, altText = 'Question
       {/* Loading State */}
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D01A8A]"></div>
         </div>
       )}
 

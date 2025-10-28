@@ -20,7 +20,7 @@ export default function SubmissionsStats({
     {
       label: 'Total',
       value: totalCount,
-      color: 'bg-blue-100 text-blue-800',
+      color: 'bg-[#F5E8F0] text-[#4E0036]',
       icon: '📊',
     },
     {

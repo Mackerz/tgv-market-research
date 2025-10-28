@@ -22,7 +22,7 @@ export default function OptionsEditor({
         <button
           type="button"
           onClick={onAddOption}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-[#D01A8A] hover:text-[#4E0036]"
         >
           + Add Option
         </button>

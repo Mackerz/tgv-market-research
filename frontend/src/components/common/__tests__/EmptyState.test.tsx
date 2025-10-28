@@ -103,7 +103,7 @@ describe('EmptyState Component', () => {
     expect(message).toHaveClass('text-gray-600');
 
     // Button should have primary styling
-    expect(button).toHaveClass('bg-blue-500');
+    expect(button).toHaveClass('bg-[#D01A8A]');
     expect(button).toHaveClass('text-white');
   });
 

@@ -35,7 +35,7 @@ export default function RoutingRuleEditor({
         <button
           type="button"
           onClick={onAddRoutingRule}
-          className="text-sm text-blue-600 hover:text-blue-800 whitespace-nowrap"
+          className="text-sm text-[#D01A8A] hover:text-[#4E0036] whitespace-nowrap"
         >
           + Add Routing Rule
         </button>

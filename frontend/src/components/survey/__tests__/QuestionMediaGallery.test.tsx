@@ -181,7 +181,7 @@ describe('QuestionMediaGallery', () => {
       );
 
       // First thumbnail should have active styling (blue border)
-      expect(thumbnails[0]).toHaveClass('border-blue-600');
+      expect(thumbnails[0]).toHaveClass('border-[#D01A8A]');
     });
   });
 
@@ -203,7 +203,7 @@ describe('QuestionMediaGallery', () => {
       );
 
       // First dot should be highlighted (wider and blue)
-      expect(dots[0]).toHaveClass('bg-blue-600');
+      expect(dots[0]).toHaveClass('bg-[#D01A8A]');
     });
 
     it('clicking dot navigates to that media', () => {

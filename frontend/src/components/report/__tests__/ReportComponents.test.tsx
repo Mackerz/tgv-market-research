@@ -41,9 +41,9 @@ describe('ReportTabs Component', () => {
     const reportingButton = screen.getByText('Reporting').closest('button');
     const submissionsButton = screen.getByText('Submissions').closest('button');
 
-    expect(reportingButton).toHaveClass('bg-blue-500');
+    expect(reportingButton).toHaveClass('bg-[#D01A8A]');
     expect(reportingButton).toHaveClass('text-white');
-    expect(submissionsButton).not.toHaveClass('bg-blue-500');
+    expect(submissionsButton).not.toHaveClass('bg-[#D01A8A]');
   });
 
   it('should call onTabChange when tab is clicked', () => {
@@ -119,7 +119,7 @@ describe('SubmissionsStats Component', () => {
     const rejectedCard = screen.getByText('Rejected').parentElement?.parentElement;
     const pendingCard = screen.getByText('Pending').parentElement?.parentElement;
 
-    expect(totalCard).toHaveClass('bg-blue-100');
+    expect(totalCard).toHaveClass('bg-[#F5E8F0]');
     expect(approvedCard).toHaveClass('bg-green-100');
     expect(rejectedCard).toHaveClass('bg-red-100');
     expect(pendingCard).toHaveClass('bg-yellow-100');

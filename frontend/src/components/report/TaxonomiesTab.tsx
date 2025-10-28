@@ -232,7 +232,7 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
         <div className="flex flex-shrink-0 space-x-3">
           <button
             onClick={() => setCreatingNew(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap"
+            className="px-4 py-2 bg-[#D01A8A] text-white rounded hover:bg-[#B0156E] whitespace-nowrap"
           >
             + New Category
           </button>
@@ -255,7 +255,7 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
           <select
             value={selectedQuestionId || ''}
             onChange={(e) => setSelectedQuestionId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D01A8A] text-gray-900 font-medium"
           >
             {availableQuestions.map((q) => (
               <option key={q.id} value={q.id} className="text-gray-900">
@@ -275,9 +275,9 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
       {/* Stats */}
       {taxonomy && (
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-blue-700">{taxonomy.reporting_labels.length}</div>
-            <div className="text-sm text-blue-600">Reporting Categories</div>
+          <div className="bg-[#F5E8F0] p-4 rounded-lg">
+            <div className="text-2xl font-bold text-[#B0156E]">{taxonomy.reporting_labels.length}</div>
+            <div className="text-sm text-[#D01A8A]">Reporting Categories</div>
           </div>
           <div className="bg-yellow-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-yellow-700">{taxonomy.unmapped_system_labels.length}</div>
@@ -323,7 +323,7 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
               <button
                 onClick={createReportingLabel}
                 disabled={!newLabelName.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 bg-[#D01A8A] text-white rounded hover:bg-[#B0156E] disabled:opacity-50"
               >
                 Create
               </button>
@@ -362,7 +362,7 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
                     </button>
                     <button
                       onClick={() => updateReportingLabel(label.id)}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                      className="px-3 py-1 text-sm bg-[#D01A8A] text-white rounded hover:bg-[#B0156E]"
                     >
                       Save
                     </button>
@@ -383,7 +383,7 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => startEditingLabel(label)}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
+                        className="text-[#D01A8A] hover:text-[#4E0036] text-sm"
                       >
                         Edit
                       </button>
@@ -433,7 +433,7 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
               <div
                 key={label.label}
                 className={`bg-white p-3 rounded-lg shadow cursor-pointer hover:bg-gray-50 ${
-                  selectedLabel?.label === label.label ? 'ring-2 ring-blue-500' : ''
+                  selectedLabel?.label === label.label ? 'ring-2 ring-[#D01A8A]' : ''
                 }`}
                 onClick={() => handleLabelClick(label)}
               >
@@ -474,7 +474,7 @@ export default function TaxonomiesTab({ surveyId }: TaxonomiesTabProps) {
               <button
                 key={label.id}
                 onClick={() => addSystemLabel(label.id, selectedLabel.label)}
-                className="px-4 py-2 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+                className="px-4 py-2 bg-[#F5E8F0] text-[#4E0036] rounded hover:bg-[#E84AA6]"
               >
                 + {label.label_name}
               </button>

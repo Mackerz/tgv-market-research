@@ -3,11 +3,23 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --brand-pink: #D01A8A;
+  --brand-maroon: #4E0036;
+  --brand-pink-light: #E84AA6;
+  --brand-pink-dark: #B0156E;
+  --brand-maroon-light: #6B004C;
+  --brand-maroon-dark: #350028;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-maroon: var(--brand-maroon);
+  --color-brand-pink-light: var(--brand-pink-light);
+  --color-brand-pink-dark: var(--brand-pink-dark);
+  --color-brand-maroon-light: var(--brand-maroon-light);
+  --color-brand-maroon-dark: var(--brand-maroon-dark);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -53,7 +53,7 @@ export default function SingleChoiceQuestion({ question, onSubmit, loading }: Si
             key={index}
             className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors touch-manipulation ${
               selectedOption === option
-                ? 'border-blue-500 bg-blue-50'
+                ? 'border-[#D01A8A] bg-[#F5E8F0]'
                 : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
             }`}
           >
@@ -66,7 +66,7 @@ export default function SingleChoiceQuestion({ question, onSubmit, loading }: Si
                 setSelectedOption(e.target.value);
                 if (error) setError('');
               }}
-              className="h-5 w-5 sm:h-4 sm:w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              className="h-5 w-5 sm:h-4 sm:w-4 text-[#D01A8A] focus:ring-[#D01A8A] border-gray-300"
               disabled={loading}
             />
             <span className="ml-3 text-gray-900 font-medium text-base leading-relaxed">{option}</span>
@@ -84,7 +84,7 @@ export default function SingleChoiceQuestion({ question, onSubmit, loading }: Si
             type="button"
             onClick={handleSkip}
             disabled={loading}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-[#D01A8A] disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           >
             Skip
           </button>
@@ -96,7 +96,7 @@ export default function SingleChoiceQuestion({ question, onSubmit, loading }: Si
           className={`flex-1 py-3 px-6 rounded-lg text-white font-medium transition-colors touch-manipulation ${
             loading || (question.required && !selectedOption)
               ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
+              : 'bg-[#D01A8A] hover:bg-[#B0156E] focus:ring-2 focus:ring-[#D01A8A]'
           }`}
         >
           {loading ? (

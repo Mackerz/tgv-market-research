@@ -24,8 +24,8 @@ export default function SurveyUnavailablePage() {
           </p>
 
           {/* Additional Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
+          <div className="bg-[#F5E8F0] border border-[#F5E8F0] rounded-lg p-4 mb-6">
+            <p className="text-sm text-[#4E0036]">
               Please contact the survey administrator if you believe this is an error, or check back later.
             </p>
           </div>
@@ -33,7 +33,7 @@ export default function SurveyUnavailablePage() {
           {/* Action Button */}
           <Link
             href="/"
-            className="inline-block w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="inline-block w-full px-6 py-3 bg-[#D01A8A] text-white font-medium rounded-md hover:bg-[#B0156E] focus:outline-none focus:ring-2 focus:ring-[#D01A8A] focus:ring-offset-2 transition-colors"
           >
             Return to Home
           </Link>

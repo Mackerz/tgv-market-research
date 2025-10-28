@@ -12,7 +12,7 @@ const sizeClasses = {
 };
 
 const colorClasses = {
-  primary: 'border-blue-600 border-t-transparent',
+  primary: 'border-[#D01A8A] border-t-transparent',
   secondary: 'border-gray-600 border-t-transparent',
   white: 'border-white border-t-transparent',
 };

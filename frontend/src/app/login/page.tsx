@@ -120,8 +120,8 @@ function LoginPageContent() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <LockClosedIcon className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-[#F5E8F0]">
+            <LockClosedIcon className="h-6 w-6 text-[#D01A8A]" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
@@ -155,7 +155,7 @@ function LoginPageContent() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-[#D01A8A] focus:border-[#D01A8A] focus:z-10 sm:text-sm"
                 placeholder="Username"
               />
             </div>
@@ -171,7 +171,7 @@ function LoginPageContent() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-[#D01A8A] focus:border-[#D01A8A] focus:z-10 sm:text-sm"
                 placeholder="Password"
               />
             </div>
@@ -181,7 +181,7 @@ function LoginPageContent() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#D01A8A] hover:bg-[#B0156E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D01A8A] disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -223,7 +223,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D01A8A] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>

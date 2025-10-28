@@ -47,7 +47,7 @@ export function MediaGridItem({ item, onClick }: MediaGridItemProps) {
                 type="video/mp4"
               />
             </video>
-            <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+            <div className="absolute top-2 left-2 bg-[#D01A8A] text-white px-2 py-1 rounded text-xs">
               🎥 Video
             </div>
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all">

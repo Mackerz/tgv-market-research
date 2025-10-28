@@ -142,7 +142,7 @@ export default function SurveysListPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search by survey name..."
-                    className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D01A8A] focus:border-[#D01A8A]"
                   />
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function SurveysListPage() {
                     value={clientFilter}
                     onChange={(e) => setClientFilter(e.target.value)}
                     placeholder="Filter by client name..."
-                    className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D01A8A] focus:border-[#D01A8A]"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function SurveysListPage() {
                     id="sort"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as 'created_at' | 'name' | 'client')}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D01A8A] focus:border-[#D01A8A]"
                   >
                     <option value="created_at">Created Date</option>
                     <option value="name">Survey Name</option>
@@ -196,7 +196,7 @@ export default function SurveysListPage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="px-6 py-2 bg-[#D01A8A] text-white rounded-md hover:bg-[#B0156E] focus:outline-none focus:ring-2 focus:ring-[#D01A8A] focus:ring-offset-2"
               >
                 Apply Filters
               </button>
@@ -214,7 +214,7 @@ export default function SurveysListPage() {
         {/* Loading State */}
         {loading && (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D01A8A] mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading surveys...</p>
           </div>
         )}
@@ -280,7 +280,7 @@ export default function SurveysListPage() {
                         )}
                         <button
                           onClick={() => handleToggleStatus(survey.id, survey.is_active)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#D01A8A] focus:ring-offset-2 ${
                             survey.is_active ? 'bg-green-600' : 'bg-gray-300'
                           }`}
                           title={survey.is_active ? 'Click to disable survey' : 'Click to enable survey'}
@@ -297,7 +297,7 @@ export default function SurveysListPage() {
                       <div className="flex justify-end items-center space-x-2">
                         <Link
                           href={`/survey/${survey.survey_slug}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-[#D01A8A] hover:text-[#4E0036]"
                         >
                           Take Survey
                         </Link>

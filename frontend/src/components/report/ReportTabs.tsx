@@ -31,7 +31,7 @@ export default function ReportTabs({ activeTab, onTabChange, surveyName }: Repor
                 className={`
                   px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap text-sm sm:text-base
                   ${activeTab === tab.id
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-[#D01A8A] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }
                 `}

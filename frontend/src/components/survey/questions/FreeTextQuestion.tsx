@@ -53,7 +53,7 @@ export default function FreeTextQuestion({ question, onSubmit, loading }: FreeTe
           }}
           placeholder="Type your answer here..."
           rows={6}
-          className={`w-full px-4 py-3 border rounded-lg text-gray-900 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+          className={`w-full px-4 py-3 border rounded-lg text-gray-900 resize-none focus:ring-2 focus:ring-[#D01A8A] focus:border-transparent ${
             error ? 'border-red-500' : 'border-gray-300'
           }`}
           disabled={loading}
@@ -73,7 +73,7 @@ export default function FreeTextQuestion({ question, onSubmit, loading }: FreeTe
             type="button"
             onClick={handleSkip}
             disabled={loading}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-[#D01A8A] disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           >
             Skip
           </button>
@@ -85,7 +85,7 @@ export default function FreeTextQuestion({ question, onSubmit, loading }: FreeTe
           className={`flex-1 py-3 px-6 rounded-lg text-white font-medium transition-colors touch-manipulation ${
             loading || (question.required && !answer.trim())
               ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
+              : 'bg-[#D01A8A] hover:bg-[#B0156E] focus:ring-2 focus:ring-[#D01A8A]'
           }`}
         >
           {loading ? (

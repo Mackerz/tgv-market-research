@@ -130,7 +130,7 @@ export function MediaModal({ item, onClose }: MediaModalProps) {
                     {item.brands_detected.map((brand, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+                        className="px-2 py-1 bg-[#F5E8F0] text-[#4E0036] rounded text-xs"
                       >
                         {brand}
                       </span>

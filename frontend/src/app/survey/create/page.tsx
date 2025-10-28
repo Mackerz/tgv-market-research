@@ -342,8 +342,8 @@ function CreateSurveyForm() {
         </div>
 
         {loading && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-700">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 inline-block mr-3"></div>
+          <div className="mb-6 bg-[#F5E8F0] border border-[#F5E8F0] rounded-lg p-4 text-[#B0156E]">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#D01A8A] inline-block mr-3"></div>
             Loading survey data...
           </div>
         )}
@@ -380,7 +380,7 @@ function CreateSurveyForm() {
               <button
                 type="button"
                 onClick={addQuestion}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="flex items-center space-x-2 px-4 py-2 bg-[#D01A8A] text-white rounded-md hover:bg-[#B0156E]"
               >
                 <PlusIcon className="h-5 w-5" />
                 <span>Add Question</span>
@@ -465,7 +465,7 @@ export default function CreateSurveyPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D01A8A] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>

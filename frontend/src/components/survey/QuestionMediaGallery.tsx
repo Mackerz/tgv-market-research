@@ -42,7 +42,7 @@ function MediaItem({ media, altText }: MediaItemProps) {
       {/* Loading State */}
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D01A8A]"></div>
         </div>
       )}
 
@@ -174,7 +174,7 @@ export default function QuestionMediaGallery({ mediaItems, altText = 'Question m
                 onClick={() => setCurrentIndex(index)}
                 className={`h-2 rounded-full transition-all ${
                   index === currentIndex
-                    ? 'w-8 bg-blue-600'
+                    ? 'w-8 bg-[#D01A8A]'
                     : 'w-2 bg-gray-300 hover:bg-gray-400'
                 }`}
                 aria-label={`Go to media ${index + 1}`}
@@ -193,7 +193,7 @@ export default function QuestionMediaGallery({ mediaItems, altText = 'Question m
               onClick={() => setCurrentIndex(index)}
               className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
                 index === currentIndex
-                  ? 'border-blue-600 ring-2 ring-blue-300'
+                  ? 'border-[#D01A8A] ring-2 ring-[#E84AA6]'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
@@ -212,7 +212,7 @@ export default function QuestionMediaGallery({ mediaItems, altText = 'Question m
                 </div>
               )}
               {index === currentIndex && (
-                <div className="absolute inset-0 bg-blue-600/10"></div>
+                <div className="absolute inset-0 bg-[#D01A8A]/10"></div>
               )}
             </button>
           ))}

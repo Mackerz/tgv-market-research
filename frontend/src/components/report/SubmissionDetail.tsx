@@ -38,7 +38,7 @@ export default function SubmissionDetail({
     // Single choice
     if (response.single_answer) {
       return (
-        <div className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+        <div className="inline-block px-3 py-1 bg-[#F5E8F0] text-[#4E0036] rounded-full">
           {response.single_answer}
         </div>
       );
@@ -70,12 +70,12 @@ export default function SubmissionDetail({
             className="max-w-md rounded-lg border border-gray-200"
           />
           {response.media_analysis && (
-            <div className="p-3 bg-blue-50 rounded border border-blue-200 text-sm">
-              <p className="font-medium text-blue-900 mb-2">AI Analysis:</p>
+            <div className="p-3 bg-[#F5E8F0] rounded border border-[#F5E8F0] text-sm">
+              <p className="font-medium text-[#4E0036] mb-2">AI Analysis:</p>
               <p className="text-gray-700 mb-2">{response.media_analysis.description}</p>
               {response.media_analysis.brands_detected.length > 0 && (
                 <div className="mb-2">
-                  <span className="font-medium text-blue-900">Brands: </span>
+                  <span className="font-medium text-[#4E0036]">Brands: </span>
                   <span className="text-gray-700">
                     {response.media_analysis.brands_detected.join(', ')}
                   </span>
@@ -86,7 +86,7 @@ export default function SubmissionDetail({
                   {response.media_analysis.reporting_labels.map((label, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+                      className="px-2 py-1 bg-[#F5E8F0] text-[#4E0036] rounded text-xs"
                     >
                       {label}
                     </span>
@@ -109,18 +109,18 @@ export default function SubmissionDetail({
             className="max-w-md rounded-lg border border-gray-200"
           />
           {response.media_analysis && (
-            <div className="p-3 bg-blue-50 rounded border border-blue-200 text-sm">
-              <p className="font-medium text-blue-900 mb-2">AI Analysis:</p>
+            <div className="p-3 bg-[#F5E8F0] rounded border border-[#F5E8F0] text-sm">
+              <p className="font-medium text-[#4E0036] mb-2">AI Analysis:</p>
               <p className="text-gray-700 mb-2">{response.media_analysis.description}</p>
               {response.media_analysis.transcript && (
                 <div className="mb-2">
-                  <span className="font-medium text-blue-900">Transcript: </span>
+                  <span className="font-medium text-[#4E0036]">Transcript: </span>
                   <span className="text-gray-700">{response.media_analysis.transcript}</span>
                 </div>
               )}
               {response.media_analysis.brands_detected.length > 0 && (
                 <div className="mb-2">
-                  <span className="font-medium text-blue-900">Brands: </span>
+                  <span className="font-medium text-[#4E0036]">Brands: </span>
                   <span className="text-gray-700">
                     {response.media_analysis.brands_detected.join(', ')}
                   </span>
@@ -131,7 +131,7 @@ export default function SubmissionDetail({
                   {response.media_analysis.reporting_labels.map((label, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+                      className="px-2 py-1 bg-[#F5E8F0] text-[#4E0036] rounded text-xs"
                     >
                       {label}
                     </span>

@@ -68,7 +68,7 @@ export default function MultipleChoiceQuestion({ question, onSubmit, loading }: 
               key={index}
               className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
                 isSelected
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-[#D01A8A] bg-[#F5E8F0]'
                   : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
               }`}
             >
@@ -83,7 +83,7 @@ export default function MultipleChoiceQuestion({ question, onSubmit, loading }: 
                 <div
                   className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-500'
+                      ? 'border-[#D01A8A] bg-[#D01A8A]'
                       : 'border-gray-300'
                   }`}
                 >
@@ -99,9 +99,9 @@ export default function MultipleChoiceQuestion({ question, onSubmit, loading }: 
       </div>
 
       {selectedOptions.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Selected options:</h4>
-          <ul className="text-blue-800 text-sm">
+        <div className="bg-[#F5E8F0] border border-[#F5E8F0] rounded-lg p-4">
+          <h4 className="font-medium text-[#4E0036] mb-2">Selected options:</h4>
+          <ul className="text-[#4E0036] text-sm">
             {selectedOptions.map((option, index) => (
               <li key={index}>• {option}</li>
             ))}
@@ -119,7 +119,7 @@ export default function MultipleChoiceQuestion({ question, onSubmit, loading }: 
             type="button"
             onClick={handleSkip}
             disabled={loading}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-[#D01A8A] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Skip
           </button>
@@ -131,7 +131,7 @@ export default function MultipleChoiceQuestion({ question, onSubmit, loading }: 
           className={`flex-1 py-3 px-6 rounded-lg text-white font-medium transition-colors ${
             loading || (question.required && selectedOptions.length === 0)
               ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
+              : 'bg-[#D01A8A] hover:bg-[#B0156E] focus:ring-2 focus:ring-[#D01A8A]'
           }`}
         >
           {loading ? (

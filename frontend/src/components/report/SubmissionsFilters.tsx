@@ -30,7 +30,7 @@ export default function SubmissionsFilters({
         <select
           value={approvalFilter}
           onChange={(e) => onApprovalFilterChange(e.target.value as ApprovalFilter)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#D01A8A]"
         >
           <option value="all">All</option>
           <option value="approved">Approved</option>
@@ -45,7 +45,7 @@ export default function SubmissionsFilters({
         <select
           value={sortBy}
           onChange={(e) => onSortByChange(e.target.value as SortBy)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#D01A8A]"
         >
           <option value="submitted_at">Date Submitted</option>
           <option value="email">Email</option>

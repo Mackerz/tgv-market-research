@@ -54,7 +54,7 @@ export default function MediaEditor({
         <button
           type="button"
           onClick={onAddMedia}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-[#D01A8A] hover:text-[#4E0036]"
         >
           + Add Media
         </button>
@@ -99,7 +99,7 @@ export default function MediaEditor({
                       <div className="flex-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-sm text-green-800 truncate">
                         {mediaItem.url}
                       </div>
-                      <label className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 cursor-pointer whitespace-nowrap">
+                      <label className="px-3 py-1 bg-[#D01A8A] text-white text-sm rounded hover:bg-[#B0156E] cursor-pointer whitespace-nowrap">
                         Change
                         <input
                           type="file"
@@ -113,7 +113,7 @@ export default function MediaEditor({
                       </label>
                     </div>
                   ) : (
-                    <label className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
+                    <label className="flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#D01A8A] hover:bg-[#F5E8F0] cursor-pointer transition-colors">
                       <ArrowUpTrayIcon className="h-5 w-5 text-gray-400" />
                       <span className="text-sm text-gray-600">
                         {uploadingIndex === mediaIndex ? 'Uploading...' : 'Click to upload'}

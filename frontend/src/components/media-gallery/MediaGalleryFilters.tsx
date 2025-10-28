@@ -43,7 +43,7 @@ export function MediaGalleryFilters({
         <h3 className="text-lg font-medium text-gray-900">Filters</h3>
         <button
           onClick={clearFilters}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-[#D01A8A] hover:text-[#4E0036]"
         >
           Clear all filters
         </button>
@@ -120,7 +120,7 @@ export function MediaGalleryFilters({
                   onClick={() => handleRegionToggle(region)}
                   className={`px-2 py-1 text-xs rounded ${
                     selectedRegions.includes(region)
-                      ? 'bg-blue-100 text-blue-800'
+                      ? 'bg-[#F5E8F0] text-[#4E0036]'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -140,7 +140,7 @@ export function MediaGalleryFilters({
                   onClick={() => handleGenderToggle(gender)}
                   className={`px-2 py-1 text-xs rounded ${
                     selectedGenders.includes(gender)
-                      ? 'bg-blue-100 text-blue-800'
+                      ? 'bg-[#F5E8F0] text-[#4E0036]'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
