@@ -111,14 +111,9 @@ export function useReportData(reportSlug: string) {
   const fetchReportingData = async () => {
     try {
       setReportingLoading(true);
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/data`), {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch reporting data');
-      }
-
-      const data: ReportingData = await response.json();
+      const data = await apiClient.get<ReportingData>(
+        `/api/reports/${reportSlug}/data`
+      );
       setReportingData(data);
       setError(null);
     } catch (err) {

@@ -114,7 +114,7 @@ def _sync_question_display_names(db: Session, report_settings: settings_models.R
             db.add(new_question_display)
 
     # Remove question display names for questions that no longer exist in survey flow
-    survey_question_ids = {q.get('id') for q in survey.survey_flow if q.get('id')}
+    survey_question_ids = {q.get('id') for q in survey_obj.survey_flow if q.get('id')}
     for existing_q in list(existing_questions.values()):
         if existing_q.question_id not in survey_question_ids:
             db.delete(existing_q)

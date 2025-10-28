@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiUrl } from '@/config/api';
+import { apiClient } from '@/lib/api';
 import { ReportSettings, AgeRange } from '@/components/report/types';
 
 /**
@@ -18,14 +18,9 @@ export function useReportSettings(reportSlug: string, activeTab: string) {
   const fetchSettings = async () => {
     try {
       setSettingsLoading(true);
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings`), {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch settings');
-      }
-
-      const data: ReportSettings = await response.json();
+      const data = await apiClient.get<ReportSettings>(
+        `/api/reports/${reportSlug}/settings`
+      );
       setSettings(data);
 
       // Set temporary state for editing
@@ -46,18 +41,10 @@ export function useReportSettings(reportSlug: string, activeTab: string) {
   const saveAgeRanges = async () => {
     try {
       setSettingsSaving(true);
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings/age-ranges`), {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(tempAgeRanges)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save age ranges');
-      }
+      await apiClient.put(
+        `/api/reports/${reportSlug}/settings/age-ranges`,
+        tempAgeRanges
+      );
 
       setSettingsSuccess('Age ranges updated successfully');
       setTimeout(() => setSettingsSuccess(null), 3000);
@@ -78,18 +65,10 @@ export function useReportSettings(reportSlug: string, activeTab: string) {
         display_name: displayName || null
       }));
 
-      const response = await fetch(apiUrl(`/api/reports/${reportSlug}/settings/question-display-names`), {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ question_updates: questionUpdates })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save question display names');
-      }
+      await apiClient.put(
+        `/api/reports/${reportSlug}/settings/question-display-names`,
+        { question_updates: questionUpdates }
+      );
 
       setSettingsSuccess('Question display names updated successfully');
       setTimeout(() => setSettingsSuccess(null), 3000);

@@ -3,6 +3,7 @@
  * Displays detailed view of a single submission with all responses
  */
 
+import { apiUrl } from '@/config/api';
 import type { Submission, Response } from './types';
 
 interface SubmissionDetailProps {
@@ -64,7 +65,7 @@ export default function SubmissionDetail({
       return (
         <div className="space-y-2">
           <img
-            src={response.photo_url}
+            src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.photo_url)}`)}
             alt="Response"
             className="max-w-md rounded-lg border border-gray-200"
           />
@@ -103,7 +104,7 @@ export default function SubmissionDetail({
       return (
         <div className="space-y-2">
           <video
-            src={response.video_url}
+            src={apiUrl(`/api/media/proxy?gcs_url=${encodeURIComponent(response.video_url)}`)}
             controls
             className="max-w-md rounded-lg border border-gray-200"
           />

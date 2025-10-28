@@ -48,6 +48,7 @@ COPY alembic /app/alembic
 COPY alembic.ini /app/alembic.ini
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY create_sample_survey_local.py /app/create_sample_survey_local.py
+COPY create_admin.py /app/create_admin.py
 
 # Create non-root user and set permissions
 RUN adduser --disabled-password --gecos '' --shell /bin/bash appuser \

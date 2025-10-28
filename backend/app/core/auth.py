@@ -212,7 +212,7 @@ def authenticate_user(db: Session, username: str, password: str) -> User | None:
         return None
 
     # Reset failed attempts on successful login
-    if user.failed_login_attempts > 0:
+    if user.failed_login_attempts and user.failed_login_attempts > 0:
         user.failed_login_attempts = 0
         user.locked_until = None
         db.commit()

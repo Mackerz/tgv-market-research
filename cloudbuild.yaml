@@ -4,9 +4,9 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/tmg-market-research-backend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/tgv-market-research-backend:$COMMIT_SHA'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/tmg-market-research-backend:latest'
+      - 'gcr.io/$PROJECT_ID/tgv-market-research-backend:latest'
       - './backend'
 
   # Build frontend image
@@ -14,22 +14,28 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/tmg-market-research-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/tgv-market-research-frontend:$COMMIT_SHA'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/tmg-market-research-frontend:latest'
+      - 'gcr.io/$PROJECT_ID/tgv-market-research-frontend:latest'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_API_URL=https://tgv-market-research-backend-c3yhwph5pa-nw.a.run.app'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_GOOGLE_CLIENT_ID=129827805799-6j1b5r983kptofko27m3ufv125pllob1.apps.googleusercontent.com'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_API_KEY=f3b14fbda835914d45e873021a7f0a545bbc8712df41a3b973c1a83f504b23e9'
       - './frontend'
 
   # Push backend image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/tmg-market-research-backend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/tgv-market-research-backend:$COMMIT_SHA'
 
   # Push frontend image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/tmg-market-research-frontend:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/tgv-market-research-frontend:$COMMIT_SHA'
 
   # Deploy backend to Cloud Run with Secret Manager
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -37,18 +43,18 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'tmg-market-research-backend'
-      - '--image=gcr.io/$PROJECT_ID/tmg-market-research-backend:$COMMIT_SHA'
-      - '--region=us-central1'
+      - 'tgv-market-research-backend'
+      - '--image=gcr.io/$PROJECT_ID/tgv-market-research-backend:$COMMIT_SHA'
+      - '--region=europe-west2'
       - '--platform=managed'
-      - '--allow-unauthenticated'
       - '--port=8000'
       - '--memory=1Gi'
       - '--cpu=1'
       - '--min-instances=0'
       - '--max-instances=10'
       - '--set-env-vars=ENVIRONMENT=production'
-      - '--set-secrets=DATABASE_URL=database-url:latest,GCP_PROJECT_ID=gcp-project-id:latest,GCS_BUCKET_NAME=gcs-bucket-name:latest,GCP_STORAGE_BUCKET_PHOTOS=gcp-storage-bucket-photos:latest,GCP_STORAGE_BUCKET_VIDEOS=gcp-storage-bucket-videos:latest,GCP_STORAGE_ENABLED=gcp-storage-enabled:latest,GCP_AI_ENABLED=gcp-ai-enabled:latest'
+      - '--set-secrets=DATABASE_URL=database-url:latest,GCP_PROJECT_ID=gcp-project-id:latest,SECRET_KEY=secret-key:latest,API_KEY=api-key:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,GEMINI_API_KEY=gemini-api-key:latest,ALLOWED_ORIGINS=allowed-origins:latest,GCS_BUCKET_NAME=gcs-bucket-name:latest,GCP_STORAGE_BUCKET_PHOTOS=gcp-storage-bucket-photos:latest,GCP_STORAGE_BUCKET_VIDEOS=gcp-storage-bucket-videos:latest,GCP_STORAGE_BUCKET_QUESTION_MEDIA=gcp-storage-bucket-question-media:latest,GCP_STORAGE_ENABLED=gcp-storage-enabled:latest,GCP_AI_ENABLED=gcp-ai-enabled:latest'
+      - '--add-cloudsql-instances=tgv-production:europe-west2:tgv-market-research-db'
 
   # Deploy frontend to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -56,21 +62,20 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'tmg-market-research-frontend'
-      - '--image=gcr.io/$PROJECT_ID/tmg-market-research-frontend:$COMMIT_SHA'
-      - '--region=us-central1'
+      - 'tgv-market-research-frontend'
+      - '--image=gcr.io/$PROJECT_ID/tgv-market-research-frontend:$COMMIT_SHA'
+      - '--region=europe-west2'
       - '--platform=managed'
-      - '--allow-unauthenticated'
       - '--port=3000'
       - '--memory=512Mi'
       - '--cpu=1'
       - '--min-instances=0'
       - '--max-instances=5'
-      - '--set-env-vars=NEXT_PUBLIC_API_URL=https://tmg-market-research-backend-mscgtmweha-uc.a.run.app'
+      - '--set-env-vars=NEXT_PUBLIC_API_URL=https://tgv-market-research-backend-c3yhwph5pa-nw.a.run.app'
 
 images:
-  - 'gcr.io/$PROJECT_ID/tmg-market-research-backend:$COMMIT_SHA'
-  - 'gcr.io/$PROJECT_ID/tmg-market-research-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/tgv-market-research-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/tgv-market-research-frontend:$COMMIT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY

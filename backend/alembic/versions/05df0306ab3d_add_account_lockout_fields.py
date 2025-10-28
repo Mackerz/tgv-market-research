@@ -1,7 +1,7 @@
 """add_account_lockout_fields
 
 Revision ID: 05df0306ab3d
-Revises: 1e3c7b4af839
+Revises: f3fcb7ec435e
 Create Date: 2025-10-23 10:53:01.819824
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '05df0306ab3d'
-down_revision = '1e3c7b4af839'
+down_revision = 'f3fcb7ec435e'
 branch_labels = None
 depends_on = None
 

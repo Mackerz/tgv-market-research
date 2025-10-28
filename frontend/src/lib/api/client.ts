@@ -32,19 +32,33 @@ class ApiClient {
    * Make a GET request
    */
   async get<T>(endpoint: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(endpoint, { ...config, method: 'GET' });
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+    logger.info(`[API Client] API Key present: ${!!apiKey}, length: ${apiKey?.length || 0}`);
+    if (!apiKey) {
+      logger.warn('[API Client] NEXT_PUBLIC_API_KEY is not set!');
+    }
+    return this.request<T>(endpoint, {
+      ...config,
+      method: 'GET',
+      headers: {
+        ...(apiKey ? { 'X-API-Key': apiKey } : {}),
+        ...config?.headers,
+      },
+    });
   }
 
   /**
    * Make a POST request
    */
   async post<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> {
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     return this.request<T>(endpoint, {
       ...config,
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
       headers: {
         'Content-Type': 'application/json',
+        ...(apiKey ? { 'X-API-Key': apiKey } : {}),
         ...config?.headers,
       },
     });
@@ -54,12 +68,14 @@ class ApiClient {
    * Make a PUT request
    */
   async put<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> {
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     return this.request<T>(endpoint, {
       ...config,
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
       headers: {
         'Content-Type': 'application/json',
+        ...(apiKey ? { 'X-API-Key': apiKey } : {}),
         ...config?.headers,
       },
     });
@@ -69,12 +85,14 @@ class ApiClient {
    * Make a PATCH request
    */
   async patch<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> {
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     return this.request<T>(endpoint, {
       ...config,
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
       headers: {
         'Content-Type': 'application/json',
+        ...(apiKey ? { 'X-API-Key': apiKey } : {}),
         ...config?.headers,
       },
     });
@@ -84,12 +102,14 @@ class ApiClient {
    * Make a DELETE request
    */
   async delete<T>(endpoint: string, data?: any, config?: RequestConfig): Promise<T> {
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY;
     return this.request<T>(endpoint, {
       ...config,
       method: 'DELETE',
       body: data ? JSON.stringify(data) : undefined,
       headers: {
         'Content-Type': 'application/json',
+        ...(apiKey ? { 'X-API-Key': apiKey } : {}),
         ...config?.headers,
       },
     });
