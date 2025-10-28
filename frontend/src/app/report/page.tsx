@@ -6,6 +6,13 @@ import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
 import { surveyService } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
+interface SubmissionStatistics {
+  total: number
+  approved: number
+  pending: number
+  rejected: number
+}
+
 interface Survey {
   id: number
   name: string
@@ -13,6 +20,7 @@ interface Survey {
   client?: string
   created_at?: string
   is_active: boolean
+  statistics?: SubmissionStatistics
 }
 
 interface SurveysResponse {
@@ -25,6 +33,10 @@ export default function SurveysListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(30)
+
   // Filter and search states
   const [searchTerm, setSearchTerm] = useState('')
   const [clientFilter, setClientFilter] = useState('')
@@ -34,12 +46,16 @@ export default function SurveysListPage() {
   const fetchSurveys = async () => {
     try {
       setLoading(true)
+      const skip = (currentPage - 1) * itemsPerPage
       const data = await surveyService.listSurveys({
+        skip,
+        limit: itemsPerPage,
         search: searchTerm || undefined,
         client: clientFilter || undefined,
         sort_by: sortBy,
         sort_order: sortOrder,
         active_only: false,
+        include_statistics: true,  // Request submission statistics
       })
       setSurveys(data)
       setError(null)
@@ -54,10 +70,13 @@ export default function SurveysListPage() {
 
   useEffect(() => {
     fetchSurveys()
-  }, [sortBy, sortOrder])
+  }, [sortBy, sortOrder, currentPage])
+
+  const totalPages = surveys ? Math.ceil(surveys.total_count / itemsPerPage) : 0
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    setCurrentPage(1)  // Reset to first page when searching
     fetchSurveys()
   }
 
@@ -207,7 +226,7 @@ export default function SurveysListPage() {
         {/* Results Count */}
         {surveys && (
           <div className="mb-4 text-sm text-gray-600">
-            Showing {surveys.surveys.length} of {surveys.total_count} surveys
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, surveys.total_count)} of {surveys.total_count} surveys
           </div>
         )}
 
@@ -239,6 +258,9 @@ export default function SurveysListPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Client
                   </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Submissions
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created Date
                   </th>
@@ -261,6 +283,30 @@ export default function SurveysListPage() {
                       <div className="text-sm text-gray-900">
                         {survey.client || <span className="text-gray-400 italic">No client</span>}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {survey.statistics ? (
+                        <div className="flex justify-center space-x-3">
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-gray-700">{survey.statistics.total}</div>
+                            <div className="text-xs text-gray-500">Total</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-green-600">{survey.statistics.approved}</div>
+                            <div className="text-xs text-gray-500">Approved</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-yellow-600">{survey.statistics.pending}</div>
+                            <div className="text-xs text-gray-500">Pending</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-red-600">{survey.statistics.rejected}</div>
+                            <div className="text-xs text-gray-500">Rejected</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center text-sm text-gray-400">-</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
@@ -330,6 +376,77 @@ export default function SurveysListPage() {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Showing page <span className="font-medium">{currentPage}</span> of{' '}
+                      <span className="font-medium">{totalPages}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="sr-only">Previous</span>
+                        ←
+                      </button>
+                      {Array.from({ length: Math.min(10, totalPages) }, (_, i) => {
+                        const page = i + 1
+                        const showPage = page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2)
+                        if (!showPage && page === currentPage - 3) {
+                          return <span key={page} className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                        }
+                        if (!showPage) return null
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                              currentPage === page
+                                ? 'z-10 bg-[#D01A8A] border-[#D01A8A] text-white'
+                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      })}
+                      <button
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="sr-only">Next</span>
+                        →
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -50,15 +50,16 @@ def create_survey(
 @router.get("/surveys/")
 def read_surveys(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 30,  # Default to 30 per page
     active_only: bool = True,
     search: Optional[str] = None,
     client: Optional[str] = None,
     sort_by: str = "created_at",
     sort_order: str = "desc",
+    include_statistics: bool = False,  # Option to include submission statistics
     db: Session = Depends(get_db)
 ):
-    """Get all surveys with optional search, filtering, and sorting"""
+    """Get all surveys with optional search, filtering, sorting, and statistics"""
     query = db.query(survey_models.Survey)
 
     # Filter by active status
@@ -98,10 +99,51 @@ def read_surveys(
     # Paginate
     surveys = query.offset(skip).limit(limit).all()
 
-    return {
-        "surveys": surveys,
-        "total_count": total_count
-    }
+    # Add submission statistics if requested
+    if include_statistics:
+        from sqlalchemy import func, case
+        from app.models.survey import Submission
+
+        surveys_with_stats = []
+        for survey in surveys:
+            # Query submission statistics
+            stats = db.query(
+                func.count(Submission.id).label('total'),
+                func.sum(case((Submission.is_approved == True, 1), else_=0)).label('approved'),
+                func.sum(case((Submission.is_approved == None, 1), else_=0)).label('pending'),
+                func.sum(case((Submission.is_approved == False, 1), else_=0)).label('rejected')
+            ).filter(Submission.survey_id == survey.id).first()
+
+            # Create survey dict with statistics
+            survey_dict = {
+                "id": survey.id,
+                "survey_slug": survey.survey_slug,
+                "name": survey.name,
+                "client": survey.client,
+                "survey_flow": survey.survey_flow,
+                "is_active": survey.is_active,
+                "complete_redirect_url": survey.complete_redirect_url,
+                "screenout_redirect_url": survey.screenout_redirect_url,
+                "created_at": survey.created_at,
+                "updated_at": survey.updated_at,
+                "statistics": {
+                    "total": int(stats.total or 0),
+                    "approved": int(stats.approved or 0),
+                    "pending": int(stats.pending or 0),
+                    "rejected": int(stats.rejected or 0)
+                }
+            }
+            surveys_with_stats.append(survey_dict)
+
+        return {
+            "surveys": surveys_with_stats,
+            "total_count": total_count
+        }
+    else:
+        return {
+            "surveys": surveys,
+            "total_count": total_count
+        }
 
 
 @router.get("/surveys/{survey_id}", response_model=survey_schemas.SurveyWithSubmissions)

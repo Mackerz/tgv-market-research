@@ -41,6 +41,7 @@ export const surveyService = {
     client?: string;
     sort_by?: string;
     sort_order?: string;
+    include_statistics?: boolean;
   }) => {
     return apiClient.get<{ surveys: Survey[]; total_count: number }>(
       '/api/surveys/',

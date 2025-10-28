@@ -177,6 +177,17 @@ class Survey(SurveyBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
+class SubmissionStatistics(BaseModel):
+    """Statistics for survey submissions"""
+    total: int = 0
+    approved: int = 0
+    pending: int = 0
+    rejected: int = 0
+
+class SurveyWithStatistics(Survey):
+    """Survey schema with submission statistics"""
+    statistics: SubmissionStatistics
+
     class Config:
         from_attributes = True
 
